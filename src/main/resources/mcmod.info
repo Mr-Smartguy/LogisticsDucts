@@ -1,0 +1,16 @@
+[
+{
+  "modid": "logisticsducts",
+  "name": "Logistics Ducts",
+  "description": "Logistics System for ThermalDynamics Ducts.",
+  "version": "${version}",
+  "mcversion": "${mcversion}",
+  "url": "",
+  "updateUrl": "",
+  "authorList": ["Mr_Smartguy"],
+  "credits": "Mr_Smartguy",
+  "logoFile": "",
+  "screenshots": [],
+  "dependencies": []
+}
+]
