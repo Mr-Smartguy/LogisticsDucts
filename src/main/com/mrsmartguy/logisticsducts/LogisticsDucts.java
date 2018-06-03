@@ -10,7 +10,10 @@ import net.minecraftforge.fml.common.event.FMLInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPostInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
 
-@Mod(modid = LogisticsDucts.MODID, name = LogisticsDucts.MODNAME, version = LogisticsDucts.MODVERSION, acceptedMinecraftVersions = "[1.12.2]")
+import cofh.thermaldynamics.ThermalDynamics;
+
+@Mod(modid = LogisticsDucts.MODID, name = LogisticsDucts.MODNAME, version = LogisticsDucts.MODVERSION, acceptedMinecraftVersions = "[1.12.2]",
+		dependencies = ThermalDynamics.VERSION_GROUP)
 public class LogisticsDucts {
 	public static final String MODID = "logisticsducts";
 	public static final String MODNAME = "Logistics Ducts";

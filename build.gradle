@@ -1,3 +1,5 @@
+import java.util.regex.Pattern
+
 buildscript {
     repositories {
         jcenter()
@@ -11,7 +13,6 @@ apply plugin: 'net.minecraftforge.gradle.forge'
 //Only edit below this line, the above code adds and enables the necessary things for Forge to be setup.
 
 
-version = "1.0"
 group = "com.mrsmartguy.logisticsducts" // http://maven.apache.org/guides/mini/guide-naming-conventions.html
 archivesBaseName = "logisticsducts"
 
@@ -19,6 +20,9 @@ sourceCompatibility = targetCompatibility = '1.8' // Need this here so eclipse t
 compileJava {
     sourceCompatibility = targetCompatibility = '1.8'
 }
+
+//Pull the mod version from code.
+version = pullVersion()
 
 minecraft {
     version = mc_version + "-" + forge_version
@@ -97,4 +101,18 @@ processResources {
     from(sourceSets.main.resources.srcDirs) {
         exclude 'mcmod.info'
     }
+}
+
+def pullVersion() {
+    def file = file("src/main/com/mrsmartguy/logisticsducts/LogisticsDucts.java")
+    def version = ""
+    def pattern = Pattern.compile("^\tpublic static final String MODVERSION = \"([\\d\\.]*)\";\$")
+    file.eachLine { String s ->
+        def matcher = pattern.matcher(s)
+        if (matcher.matches()) {
+            version = matcher.group(1)
+            return
+        }
+    }
+    return version
 }
