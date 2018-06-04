@@ -17,7 +17,6 @@ public class ExtractorRole extends LogisticsRole {
 
 	@Override
 	public void performRole(LogisticatorItem logisticator, Map<LogisticatorItem, Route> network) {
-		System.out.println("Attempging to extract items");
 		// Extractors attempt to send the contents of the attached inventory
 		// to an appropriate acceptor in the logistics network
 		

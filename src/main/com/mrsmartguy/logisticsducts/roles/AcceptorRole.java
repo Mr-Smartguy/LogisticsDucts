@@ -25,7 +25,6 @@ public class AcceptorRole extends LogisticsRole {
 
 	@Override
 	public int acceptsItems(LogisticatorItem logisticator, ItemStack items) {
-		System.out.println("Checking if items are accepted");
 		// Acceptors will accept any items that pass the given filter that the attached inventory has space for
 		
 		// Copy the item stack to prevent modifying the original
