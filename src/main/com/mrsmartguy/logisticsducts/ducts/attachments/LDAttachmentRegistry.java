@@ -10,7 +10,7 @@ public class LDAttachmentRegistry {
 	
 	public final static ResourceLocation LOGISTICATOR_ITEM = new ResourceLocation(LogisticsDucts.MODID, "logisticator_item");
 	
-	static {
+	public static void registerAttachments() {
 		AttachmentRegistry.registerAttachment(LOGISTICATOR_ITEM, LogisticatorItem::new);
 	}
 

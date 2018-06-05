@@ -1,6 +1,7 @@
 package com.mrsmartguy.logisticsducts;
 
 import com.mrsmartguy.logisticsducts.blocks.LDBlocks;
+import com.mrsmartguy.logisticsducts.ducts.attachments.LDAttachmentRegistry;
 import com.mrsmartguy.logisticsducts.items.LDItems;
 import com.mrsmartguy.logisticsducts.proxy.CommonProxy;
 
@@ -32,6 +33,7 @@ public class LogisticsDucts {
 		System.out.println(MODNAME + " is loading!");
 		LDBlocks.preInit();
 		LDItems.preInit();
+		LDAttachmentRegistry.registerAttachments();
 		proxy.preInit(event);
 	}
 
