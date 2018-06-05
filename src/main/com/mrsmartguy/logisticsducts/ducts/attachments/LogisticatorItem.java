@@ -9,6 +9,8 @@ import java.util.LinkedList;
 import java.util.List;
 
 import com.mrsmartguy.logisticsducts.LogisticsDucts;
+import com.mrsmartguy.logisticsducts.gui.GuiLogisticator;
+import com.mrsmartguy.logisticsducts.gui.container.ContainerLogisticator;
 import com.mrsmartguy.logisticsducts.items.LDItems;
 import com.mrsmartguy.logisticsducts.network.LogisticsNetwork;
 import com.mrsmartguy.logisticsducts.roles.AcceptorRole;
@@ -27,11 +29,14 @@ import cofh.thermaldynamics.duct.attachments.retriever.RetrieverItem;
 import cofh.thermaldynamics.duct.item.DuctUnitItem;
 import cofh.thermaldynamics.duct.item.TravelingItem;
 import cofh.thermaldynamics.duct.tiles.TileGrid;
+import cofh.thermaldynamics.gui.client.GuiDuctConnection;
 import cofh.thermaldynamics.multiblock.Route;
 import cofh.thermaldynamics.multiblock.RouteCache;
 import cofh.thermaldynamics.render.RenderDuct;
+import net.minecraft.client.gui.Gui;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.InventoryPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.BlockRenderLayer;
@@ -83,7 +88,7 @@ public class LogisticatorItem extends RetrieverItem {
 	@Override
 	public String getName() {
 
-		return "item.logisticsducts.logisticatorItem";
+		return "item.logisticsducts.logisticator." + type + ".name";
 	}
 
 	@Override
@@ -142,6 +147,18 @@ public class LogisticatorItem extends RetrieverItem {
 		{
 			role.performRole(this, network);
 		}
+	}
+	
+	@Override
+	public Object getGuiClient(InventoryPlayer inventory) {
+
+		return new GuiLogisticator(inventory, this);
+	}
+	
+	@Override
+	public Object getGuiServer(InventoryPlayer inventory) {
+
+		return new ContainerLogisticator(inventory, this);
 	}
 
 	@Override
