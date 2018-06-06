@@ -13,7 +13,7 @@ import net.minecraft.inventory.IInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.items.IItemHandler;
 
-public class ExtractorRole extends LogisticsRole {
+public class RoleExtractor extends LogisticsRole {
 
 	@Override
 	public void performRole(LogisticatorItem logisticator, Map<LogisticatorItem, Route> network) {

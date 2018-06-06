@@ -10,7 +10,7 @@ import cofh.thermaldynamics.multiblock.Route;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.items.IItemHandler;
 
-public class AcceptorRole extends LogisticsRole {
+public class RoleAcceptor extends LogisticsRole {
 
 	@Override
 	public void performRole(LogisticatorItem logisticator, Map<LogisticatorItem, Route> network) {

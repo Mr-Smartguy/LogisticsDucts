@@ -9,7 +9,7 @@ import com.mrsmartguy.logisticsducts.ducts.attachments.LogisticatorItem;
 import cofh.thermaldynamics.multiblock.Route;
 import net.minecraft.item.ItemStack;
 
-public class ProviderRole extends LogisticsRole {
+public class RoleProvider extends LogisticsRole {
 
 	@Override
 	public void performRole(LogisticatorItem logisticator, Map<LogisticatorItem, Route> network) {
