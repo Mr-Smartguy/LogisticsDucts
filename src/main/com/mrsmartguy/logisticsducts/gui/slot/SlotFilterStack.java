@@ -1,22 +1,28 @@
 package com.mrsmartguy.logisticsducts.gui.slot;
 
 import cofh.thermaldynamics.duct.attachments.filter.IFilterConfig;
-import cofh.thermaldynamics.gui.slot.SlotFilter;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.IInventory;
+import net.minecraft.inventory.InventoryBasic;
+import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemStack;
-import net.minecraftforge.items.ItemHandlerHelper;
 
 /**
- * Extension of SlotFilter that allows for stacks with quantity other than 1.
+ * Filter Slot that allows for stacks with quantity other than 1.
  */
-public class SlotFilterStack extends SlotFilter {
+public class SlotFilterStack extends Slot {
 	
 	private IFilterConfig filter;
 	private long timeLastAdded = 0;
+
+	public int slotIndex;
+
+	private static final IInventory INV = new InventoryBasic("[FALSE]", false, 0);
 	
 	public SlotFilterStack(IFilterConfig tile, int slotIndex, int x, int y) {
-		super(tile, slotIndex, x, y);
-		filter = tile;
+		super(INV, slotIndex, x, y);
+		this.slotIndex = slotIndex;
+		this.filter = tile;
 	}
 
 	/**
@@ -26,24 +32,41 @@ public class SlotFilterStack extends SlotFilter {
 	public void putStack(ItemStack stack) {
 		
 		// Debounce due to stack sometimes being added twice in quick succession
-		if (System.currentTimeMillis() - timeLastAdded < 100)
+		/*if (System.currentTimeMillis() - timeLastAdded < 100)
 			return;
 		
-		timeLastAdded = System.currentTimeMillis();
-
-		synchronized (filter.getFilterStacks()) {
+		timeLastAdded = System.currentTimeMillis();*/
+		
+        filter.getFilterStacks()[getSlotIndex()] = stack;
+        this.onSlotChanged();
+		/*synchronized (filter.getFilterStacks()) {
 			if (!stack.isEmpty() &&
 					ItemHandlerHelper.canItemStacksStack(stack, filter.getFilterStacks()[getSlotIndex()])) {
 				stack.grow(filter.getFilterStacks()[getSlotIndex()].getCount());
 			}
 			filter.getFilterStacks()[getSlotIndex()] = stack;
 			onSlotChanged();
-		}
+		}*/
 	}
 
-	/**
-	 * Overrided because filter in this context is different than filter in the super's context
-	 */
+	@Override
+	public boolean canTakeStack(EntityPlayer player) {
+
+		return false;
+	}
+
+	@Override
+	public boolean isItemValid(ItemStack stack) {
+
+		return !stack.isEmpty();
+	}
+
+	@Override
+	public void onSlotChanged() {
+
+		filter.onChange();
+	}
+
 	@Override
 	public ItemStack getStack() {
 
@@ -66,6 +89,12 @@ public class SlotFilterStack extends SlotFilter {
 		
 		newStack.shrink(amount);
 		return newStack;
+	}
+
+	@Override
+	public boolean isHere(IInventory inv, int slotIn) {
+
+		return false;
 	}
 
 }
