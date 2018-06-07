@@ -12,6 +12,11 @@ import net.minecraft.item.ItemStack;
 public class RoleProvider extends LogisticsRole {
 
 	@Override
+	public String getName() {
+		return "provider";
+	}
+
+	@Override
 	public void performRole(LogisticatorItem logisticator, Map<LogisticatorItem, Route> network) {
 		// Providers have no active role.
 	}

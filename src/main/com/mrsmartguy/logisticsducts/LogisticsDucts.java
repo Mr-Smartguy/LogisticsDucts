@@ -4,6 +4,7 @@ import com.mrsmartguy.logisticsducts.blocks.LDBlocks;
 import com.mrsmartguy.logisticsducts.ducts.attachments.LDAttachmentRegistry;
 import com.mrsmartguy.logisticsducts.items.LDItems;
 import com.mrsmartguy.logisticsducts.proxy.CommonProxy;
+import com.mrsmartguy.logisticsducts.roles.LDRoleRegistry;
 
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.SidedProxy;
@@ -34,6 +35,7 @@ public class LogisticsDucts {
 		LDBlocks.preInit();
 		LDItems.preInit();
 		LDAttachmentRegistry.registerAttachments();
+		LDRoleRegistry.registerRoles();
 		proxy.preInit(event);
 	}
 

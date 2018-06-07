@@ -13,6 +13,11 @@ import net.minecraftforge.items.IItemHandler;
 public class RoleAcceptor extends LogisticsRole {
 
 	@Override
+	public String getName() {
+		return "acceptor";
+	}
+
+	@Override
 	public void performRole(LogisticatorItem logisticator, Map<LogisticatorItem, Route> network) {
 		// Acceptors have no active role.
 	}

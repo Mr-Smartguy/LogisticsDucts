@@ -13,8 +13,14 @@ import net.minecraft.item.ItemStack;
  * Represents a role that a logisticator can perform in the logistics system
  */
 public abstract class LogisticsRole {
+	
 	/**
-	 * Performs the function of this role (i.e. keep stock, request).
+	 * Returns the name of this role (e.g. acceptor, etc.)
+	 * @return The name of this role
+	 */
+	public abstract String getName();
+	/**
+	 * Performs the function of this role (e.g. keep stock, request).
 	 * @param logisticator The logisticator that possesses this role.
 	 * @param logisticators The logistics network, minus the logisticator that possesses this role.
 	 */

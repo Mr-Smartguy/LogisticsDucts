@@ -16,6 +16,11 @@ import net.minecraftforge.items.IItemHandler;
 public class RoleExtractor extends LogisticsRole {
 
 	@Override
+	public String getName() {
+		return "extractor";
+	}
+
+	@Override
 	public void performRole(LogisticatorItem logisticator, Map<LogisticatorItem, Route> network) {
 		// Extractors attempt to send the contents of the attached inventory
 		// to an appropriate acceptor in the logistics network
