@@ -85,6 +85,11 @@ public class LogisticatorItem extends RetrieverItem {
 		}
 	}
 	
+	public LogisticsRole getRole(int index)
+	{
+		return roles[index];
+	}
+	
 	/**
 	 * Returns this logisticator's filter array
 	 */

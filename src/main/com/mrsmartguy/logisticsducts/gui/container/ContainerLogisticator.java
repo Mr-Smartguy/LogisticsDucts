@@ -55,7 +55,7 @@ public class ContainerLogisticator extends ContainerAttachmentBase {
 
 		gridX0 = 89 - gridWidth * 9;
 		
-		this.activeRoleIndex = activeRoleIndex;
+		this.activeRoleIndex = -1;
 
 		switch (gridHeight)
 		{
@@ -69,7 +69,7 @@ public class ContainerLogisticator extends ContainerAttachmentBase {
 				gridY0 = 20;
 				break;
 		}
-		// Create slots for every filter in the logisticator
+		// Create slots for every filter in the logisticator (all off-screen)
 		for (int filterIndex = 0; filterIndex < filters.length; filterIndex++)
 		{
 			for (int i = 0; i < gridHeight; i++)
@@ -77,10 +77,7 @@ public class ContainerLogisticator extends ContainerAttachmentBase {
 				for (int j = 0; j < gridWidth; j++)
 				{
 					// Shift slots over if the filter is not the currently active one
-					int xPos = gridX0 + j * 18;
-					
-					if (filterIndex != activeRoleIndex)
-						xPos += DEACTIVATED_X_OFFSET;
+					int xPos = gridX0 + j * 18 + DEACTIVATED_X_OFFSET;
 					if (filters[i].isItem())
 					{
 						filterSlots.add(((SlotFilterStack) addSlotToContainer(
@@ -94,6 +91,19 @@ public class ContainerLogisticator extends ContainerAttachmentBase {
 				}
 			}
 		}
+		
+		setActiveRoleIndex(activeRoleIndex);
+	}
+	
+	/**
+	 * Checks if the currently selected role exists.
+	 * @return True if the currently selected role exists, false otherwise
+	 */
+	public boolean activeRoleExists()
+	{
+		if (activeRoleIndex == -1)
+			return false;
+		return (tile.getRole(activeRoleIndex) != null);
 	}
 	
 	/**
@@ -109,7 +119,6 @@ public class ContainerLogisticator extends ContainerAttachmentBase {
 			{
 				filterSlots.get(slotsPerFilter * activeRoleIndex + i).xPos += DEACTIVATED_X_OFFSET;
 			}
-			activeRoleIndex = -1;
 		}
 	}
 	
@@ -120,20 +129,35 @@ public class ContainerLogisticator extends ContainerAttachmentBase {
 	 */
 	public void setActiveRoleIndex(int roleIndex)
 	{
-		if (activeRoleIndex != -1)
+		// Move the previous active role's slots over if it exists
+		if (activeRoleExists())
 		{
-			// Move the previous active filter's slots over
 			for (int i = 0; i < slotsPerFilter; i++)
 			{
 				filterSlots.get(slotsPerFilter * activeRoleIndex + i).xPos += DEACTIVATED_X_OFFSET;
 			}
 		}
-		// Move the newly selected slots onto the screen
-		for (int i = 0; i < slotsPerFilter; i++)
+		activeRoleIndex = roleIndex;
+		// Move the newly selected slots onto the screen if the new role exists
+		if (activeRoleExists())
 		{
-			filterSlots.get(slotsPerFilter * roleIndex + i).xPos -= DEACTIVATED_X_OFFSET;
+			for (int i = 0; i < slotsPerFilter; i++)
+			{
+				// Modulo operator ensures the slots get moved on screen,
+				// even if they have been moved off-screen multiple times
+				filterSlots.get(slotsPerFilter * roleIndex + i).xPos %= DEACTIVATED_X_OFFSET;
+			}
+			this.activeRoleIndex = roleIndex;
 		}
-		this.activeRoleIndex = roleIndex;
+	}
+	
+	/**
+	 * Returns the current active role index.
+	 * @return The index of the currently active role
+	 */
+	public int getActiveRoleIndex()
+	{
+		return this.activeRoleIndex;
 	}
 	
 	/**
