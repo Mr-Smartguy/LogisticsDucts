@@ -59,8 +59,8 @@ public class LogisticatorItem extends RetrieverItem {
 	// The number of roles a given level of logisticator can have
 	public static final int[] numRoles = {2, 3, 4, 5, 6};
 	
-	private FilterLogic[] filters;
-	private LogisticsRole[] roles;
+	private FilterLogic[] filters = null;
+	private LogisticsRole[] roles = null;
 			
 	public LogisticatorItem(TileGrid tile, byte side) {
 		super(tile, side);
@@ -83,6 +83,14 @@ public class LogisticatorItem extends RetrieverItem {
 			roles[i] = null;
 			filters[i] = createFilterLogic();
 		}
+	}
+	
+	/**
+	 * Returns this logisticator's filter array
+	 */
+	public FilterLogic[] getFilters()
+	{
+		return filters;
 	}
 
 	@Override
@@ -183,7 +191,7 @@ public class LogisticatorItem extends RetrieverItem {
 	@Override
 	public Object getGuiServer(InventoryPlayer inventory) {
 
-		return new ContainerLogisticator(inventory, this);
+		return new ContainerLogisticator(inventory, this, 0);
 	}
 
 	@Override

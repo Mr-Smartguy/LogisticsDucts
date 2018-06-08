@@ -25,31 +25,40 @@ import net.minecraftforge.items.ItemHandlerHelper;
  */
 public class ContainerLogisticator extends ContainerAttachmentBase {
 
-	private final ConnectionBase tile;
-	public final FilterLogic filter;
+	private final LogisticatorItem tile;
+	public final FilterLogic[] filters;
 	public LinkedList<SlotFilterStack> filterSlots = new LinkedList<>();
+	public final int slotsPerFilter;
 	public final int gridWidth;
 	public final int gridHeight;
 	public final int gridX0;
 	public final int gridY0;
+
+	private int activeRoleIndex;
 	
-	public ContainerLogisticator(InventoryPlayer inventory, ConnectionBase tile)
+	// The amount that deactivated slots are moved by
+	private static final int DEACTIVATED_X_OFFSET = 10000;
+	
+	public ContainerLogisticator(InventoryPlayer inventory, LogisticatorItem tile, int activeRoleIndex)
 	{
 
 		super(inventory, tile);
 		this.tile = tile;
 
-		filter = tile.getFilter();
+		filters = tile.getFilters();
 
-		assert filter != null;
-
-		int n = filter.getFilterStacks().length;
-		gridWidth = filter.filterStackGridWidth();
-		gridHeight = n / gridWidth;
+		assert filters != null;
+		
+		slotsPerFilter = filters[0].getFilterStacks().length;
+		gridWidth = filters[0].filterStackGridWidth();
+		gridHeight = slotsPerFilter / gridWidth;
 
 		gridX0 = 89 - gridWidth * 9;
+		
+		this.activeRoleIndex = activeRoleIndex;
 
-		switch (gridHeight) {
+		switch (gridHeight)
+		{
 			case 1:
 				gridY0 = 38;
 				break;
@@ -60,14 +69,95 @@ public class ContainerLogisticator extends ContainerAttachmentBase {
 				gridY0 = 20;
 				break;
 		}
-		for (int i = 0; i < gridHeight; i++) {
-			for (int j = 0; j < gridWidth; j++) {
-				if (filter.isItem()) {
-					filterSlots.add(((SlotFilterStack) addSlotToContainer(new SlotFilterStack(filter, j + i * gridWidth, gridX0 + j * 18, gridY0 + i * 18))));
-				} /*else {
-					filterSlots.add(((SlotFilter) addSlotToContainer(new SlotFilterFluid(filter, j + i * gridWidth, gridX0 + j * 18, gridY0 + i * 18))));
-				}*/
+		// Create slots for every filter in the logisticator
+		for (int filterIndex = 0; filterIndex < filters.length; filterIndex++)
+		{
+			for (int i = 0; i < gridHeight; i++)
+			{
+				for (int j = 0; j < gridWidth; j++)
+				{
+					// Shift slots over if the filter is not the currently active one
+					int xPos = gridX0 + j * 18;
+					
+					if (filterIndex != activeRoleIndex)
+						xPos += DEACTIVATED_X_OFFSET;
+					if (filters[i].isItem())
+					{
+						filterSlots.add(((SlotFilterStack) addSlotToContainer(
+								new SlotFilterStack(filters[filterIndex], j + i * gridWidth, xPos, gridY0 + i * 18))));
+					}
+					/*else
+					{
+						filterSlots.add(((SlotFilter) addSlotToContainer(
+								new SlotFilterFluid(filter, j + i * gridWidth, gridX0 + j * 18, gridY0 + i * 18))));
+					}*/
+				}
 			}
+		}
+	}
+	
+	/**
+	 * Makes the currently active role's slots move offscreen.
+	 * Used to select a new role in a logisticator's gui.
+	 */
+	public void deactivateCurrentRole()
+	{
+		if (activeRoleIndex != -1)
+		{
+			// Move the previous active filter's slots over and move the newly selected slots back
+			for (int i = 0; i < slotsPerFilter; i++)
+			{
+				filterSlots.get(slotsPerFilter * activeRoleIndex + i).xPos += DEACTIVATED_X_OFFSET;
+			}
+			activeRoleIndex = -1;
+		}
+	}
+	
+	/**
+	 * Sets the currently active role by index.
+	 * Used to select a new role in a logisticator's gui.
+	 * @param The index of the currently active role
+	 */
+	public void setActiveRoleIndex(int roleIndex)
+	{
+		if (activeRoleIndex != -1)
+		{
+			// Move the previous active filter's slots over
+			for (int i = 0; i < slotsPerFilter; i++)
+			{
+				filterSlots.get(slotsPerFilter * activeRoleIndex + i).xPos += DEACTIVATED_X_OFFSET;
+			}
+		}
+		// Move the newly selected slots onto the screen
+		for (int i = 0; i < slotsPerFilter; i++)
+		{
+			filterSlots.get(slotsPerFilter * roleIndex + i).xPos -= DEACTIVATED_X_OFFSET;
+		}
+		this.activeRoleIndex = roleIndex;
+	}
+	
+	/**
+	 * Replaces every filter's contents at index with the contents of the filter at index + 1.
+	 * Clears the contents of the last filter.
+	 * Used to delete a role from a logisticator.
+	 * @param index The index of the filter to begin shifting with (the deleted logisticator role index)
+	 */
+	public void shiftContentsBack(int index)
+	{
+		// Iterate from index to the second to last filter
+		for (int i = index; i < filters.length - 1; i++)
+		{
+			// Move contents from next filter to current filter
+			for (int slotIndex = 0; slotIndex < slotsPerFilter; slotIndex++)
+			{
+				filterSlots.get(i * slotsPerFilter + slotIndex).putStack(
+						filterSlots.get((i + 1) * slotsPerFilter + slotIndex).getStack());
+			}
+		}
+		// Clear the contents of the last filter
+		for (int slotIndex = 0; slotIndex < slotsPerFilter; slotIndex++)
+		{
+			filterSlots.get((filters.length - 1) * slotsPerFilter + slotIndex).putStack(ItemStack.EMPTY);;
 		}
 	}
 	
@@ -150,7 +240,7 @@ public class ContainerLogisticator extends ContainerAttachmentBase {
 
 		int invPlayer = 27;
 		int invFull = invPlayer + 9;
-		int invTile = invFull + filter.getFilterStacks().length;
+		int invTile = invFull + slotsPerFilter * filters.length;
 
 		if (slot != null && slot.getHasStack()) {
 			ItemStack stack = slot.getStack();
