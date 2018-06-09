@@ -32,6 +32,7 @@ public class GuiLogisticator extends GuiDuctConnection {
 	
 	private static final String ROLE_LEFT_NAME = "RoleLeft";
 	private static final String ROLE_RIGHT_NAME = "RoleRight";
+	private static final String ROLE_PREFIX = "RoleAdd";
 	
 	private ContainerDuctConnection superContainer;
 	private ContainerLogisticator container;
@@ -50,6 +51,8 @@ public class GuiLogisticator extends GuiDuctConnection {
 	private static final int ROLE_BUTTON_TOP = 17;
 	// Vertical distance between role buttons
 	private static final int ROLE_BUTTON_DISTANCE = 2;
+	
+	private LogisticsRole prevRole;
 
 	public GuiLogisticator(InventoryPlayer inventory, LogisticatorItem conBase) {
 		super(inventory, conBase);
@@ -130,10 +133,7 @@ public class GuiLogisticator extends GuiDuctConnection {
 		
 		for (ElementButton button : roleButtons)
 		{
-			// Role buttons are always invisible, they get manually drawn
-			// This is because we have to cover the slots drawn by GuiDuctConnector, which would happen
-			// after the buttons were drawn if they were drawn normally
-			button.setEnabled(!enabled);
+			setElementVisible(button, !enabled);
 		}
 		
 		setStackSizeTextEnabled(enabled);
@@ -143,6 +143,8 @@ public class GuiLogisticator extends GuiDuctConnection {
 	{
 		// Update the filter
 		setContainerFilter(logisticator.getFilters()[container.getActiveRoleIndex()]);
+		// Force the container to update slot positions
+		container.setActiveRoleIndex(container.getActiveRoleIndex());
 		
 		updateButtonEnabledStates();
 	}
@@ -194,7 +196,7 @@ public class GuiLogisticator extends GuiDuctConnection {
 		{
 			roleButtons[i] = new ElementButton(this,
 					xSize / 2 - (162/2), ROLE_BUTTON_TOP + i * (13 + ROLE_BUTTON_DISTANCE),
-					"Role" + roleStrings.get(i),
+					ROLE_PREFIX + roleStrings.get(i),
 					28, 0,
 					28, 13,
 					28, 16,
@@ -267,16 +269,17 @@ public class GuiLogisticator extends GuiDuctConnection {
 	
 	@Override
 	protected void updateElementInformation() {
-		super.updateElementInformation();
-		
-		roleLeftButton.setEnabled(canDecrement());
-		roleRightButton.setEnabled(canIncrement());
 		
 		int index = container.getActiveRoleIndex();
 		
 		if (container.activeRoleExists())
 		{
 			LogisticsRole role = logisticator.getRole(index);
+			if (role != prevRole)
+			{
+				roleChanged();
+				prevRole = role;
+			}
 			name = StringHelper.localize("item.logisticsducts.logisticator.role." + (index + 1)) +
 					" " +
 					StringHelper.localize("item.logisticsducts.logisticator.role." + role.getName());
@@ -287,6 +290,11 @@ public class GuiLogisticator extends GuiDuctConnection {
 					" " +
 					StringHelper.localize("item.logisticsducts.logisticator.role.none");
 		}
+		
+		roleLeftButton.setEnabled(canDecrement());
+		roleRightButton.setEnabled(canIncrement());
+
+		super.updateElementInformation();
 	}
 	
 	@Override
@@ -299,6 +307,12 @@ public class GuiLogisticator extends GuiDuctConnection {
 		else if (buttonName == ROLE_RIGHT_NAME)
 		{
 			tryIncrementRole();
+		}
+		else if (buttonName.startsWith(ROLE_PREFIX))
+		{
+			LogisticsRole newRole = LDRoleRegistry.createRole(buttonName.substring(ROLE_PREFIX.length()));
+			logisticator.setRole(newRole, container.getActiveRoleIndex());
+			roleChanged();
 		}
 		
 		super.handleElementButtonClick(buttonName, mouseButton);

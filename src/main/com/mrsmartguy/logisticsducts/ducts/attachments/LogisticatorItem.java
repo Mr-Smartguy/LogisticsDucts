@@ -45,6 +45,8 @@ import net.minecraft.client.gui.Gui;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.InventoryPlayer;
+import net.minecraft.inventory.Container;
+import net.minecraft.inventory.IContainerListener;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
@@ -66,6 +68,7 @@ public class LogisticatorItem extends RetrieverItem {
 	
 	private FilterLogic[] filters = null;
 	private LogisticsRole[] roles = null;
+	private LogisticsRole[] prevRoles = null;
 			
 	public LogisticatorItem(TileGrid tile, byte side) {
 		super(tile, side);
@@ -80,11 +83,13 @@ public class LogisticatorItem extends RetrieverItem {
 	{
 		// Create roles and corresponding filters
 		roles = new LogisticsRole[numRoles[type]];
+		prevRoles = new LogisticsRole[numRoles[type]];
 		filters = new FilterLogic[numRoles[type]];
 		
 		for (int i = 0; i < numRoles[type]; i++)
 		{
 			roles[i] = null;
+			prevRoles[i] = null;
 			filters[i] = createFilterLogic();
 		}
 	}
@@ -322,6 +327,39 @@ public class LogisticatorItem extends RetrieverItem {
 		super.writePortableData(player, tag);
 		tag.setString("DisplayType", "item.logisticsducts.logisticator.0.name");
 	}
+
+	@Override
+	public void receiveGuiNetworkData(int i, int j) {
+
+		if (roles == null)
+			createRoles();
+		
+		if (i >= LD_WINDOW_PROPERTIES.ROLE_START && i < LD_WINDOW_PROPERTIES.ROLE_START + roles.length)
+		{
+			roles[i - LD_WINDOW_PROPERTIES.ROLE_START] = LDRoleRegistry.createRole(j);
+		}
+		else
+		{
+			super.receiveGuiNetworkData(i, j);
+		}
+	}
+	
+	@Override
+	public void sendGuiNetworkData(Container container, List<IContainerListener> players, boolean newListener) {
+		
+		super.sendGuiNetworkData(container, players, newListener);
+		for (int i = 0; i < roles.length; i++)
+		{
+			if (prevRoles[i] != roles[i] || newListener)
+			{
+				for (IContainerListener player : players)
+				{
+					player.sendWindowProperty(container, LD_WINDOW_PROPERTIES.ROLE_START + i, LDRoleRegistry.getRoleIndex(roles[i]));
+				}
+				prevRoles[i] = roles[i];
+			}
+		}
+	}
 	
 	/**
 	 * Sends as many of the requested item to the destination along the given route via the logistics network.
@@ -384,10 +422,13 @@ public class LogisticatorItem extends RetrieverItem {
 		
 		for (LogisticsRole role : roles)
 		{
-			numAccepted += role.acceptsItems(this, items);
-			if (numAccepted > items.getCount()) 
+			if (role != null)
 			{
-				return items.getCount();
+				numAccepted += role.acceptsItems(this, items);
+				if (numAccepted > items.getCount()) 
+				{
+					return items.getCount();
+				}
 			}
 		}
 		return numAccepted;
@@ -399,6 +440,15 @@ public class LogisticatorItem extends RetrieverItem {
 	 */
 	public void addPendingItem(TravelingItem traveling) {
 		pending.add(traveling);
+	}
+	
+	
+	/*
+	 * Window property numbers for sendGuiNetworkData/receiveGuiNetworkData
+	 * Should be at least FilterLogic.defaultLevels.length + 1
+	 */
+	public static class LD_WINDOW_PROPERTIES {
+		public final static short ROLE_START = 5000;
 	}
 
 	/* More network IDs for use in LogisticsDucts

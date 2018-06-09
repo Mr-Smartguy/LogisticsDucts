@@ -1,5 +1,6 @@
 package com.mrsmartguy.logisticsducts.gui.slot;
 
+import cofh.thermaldynamics.duct.attachments.filter.FilterLogic;
 import cofh.thermaldynamics.duct.attachments.filter.IFilterConfig;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.IInventory;
@@ -12,14 +13,14 @@ import net.minecraft.item.ItemStack;
  */
 public class SlotFilterStack extends Slot {
 	
-	private IFilterConfig filter;
+	private FilterLogic filter;
 	private long timeLastAdded = 0;
 
 	public int slotIndex;
 
 	private static final IInventory INV = new InventoryBasic("[FALSE]", false, 0);
 	
-	public SlotFilterStack(IFilterConfig tile, int slotIndex, int x, int y) {
+	public SlotFilterStack(FilterLogic tile, int slotIndex, int x, int y) {
 		super(INV, slotIndex, x, y);
 		this.slotIndex = slotIndex;
 		this.filter = tile;
@@ -65,6 +66,11 @@ public class SlotFilterStack extends Slot {
 	public void onSlotChanged() {
 
 		filter.onChange();
+		// Hack, workaround ThermalDynamics bug that FilterLogic doesn't mark the chunk dirty in onChange.
+		// TODO fix and submit pull request, then change filter back to IFilterLogic
+		filter.connection.baseTile.markChunkDirty();
+		
+		super.onSlotChanged();
 	}
 
 	@Override
