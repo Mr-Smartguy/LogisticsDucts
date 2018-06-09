@@ -64,7 +64,6 @@ public class LogisticatorItem extends RetrieverItem {
 			
 	public LogisticatorItem(TileGrid tile, byte side) {
 		super(tile, side);
-		createRoles();
 	}
 	
 	public LogisticatorItem(TileGrid tile, byte side, int type) {
@@ -90,11 +89,18 @@ public class LogisticatorItem extends RetrieverItem {
 		return roles[index];
 	}
 	
+	public void setRole(LogisticsRole newRole, int index)
+	{
+		roles[index] = newRole;
+	}
+	
 	/**
 	 * Returns this logisticator's filter array
 	 */
 	public FilterLogic[] getFilters()
 	{
+		if (filters == null)
+			createRoles();
 		return filters;
 	}
 
@@ -218,6 +224,9 @@ public class LogisticatorItem extends RetrieverItem {
 
 		super.readFromNBT(tag);
 		
+		if (filters == null)
+			createRoles();
+		
 		// Read filters from NBT tag
 		for (int i = 0; i < filters.length; i++)
 		{
@@ -242,6 +251,9 @@ public class LogisticatorItem extends RetrieverItem {
 	public void writeToNBT(NBTTagCompound tag) {
 
 		super.writeToNBT(tag);
+		
+		if (filters == null)
+			createRoles();
 		
 		// Write filters to NBT tag
 		for (int i = 0; i < filters.length; i++)
