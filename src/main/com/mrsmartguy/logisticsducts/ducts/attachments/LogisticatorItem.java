@@ -28,6 +28,7 @@ import cofh.core.network.PacketBase;
 import cofh.core.network.PacketHandler;
 import cofh.core.network.PacketTileInfo;
 import cofh.core.util.helpers.ItemHelper;
+import cofh.core.util.helpers.RedstoneControlHelper;
 import cofh.thermaldynamics.duct.Attachment;
 import cofh.thermaldynamics.duct.AttachmentRegistry;
 import cofh.thermaldynamics.duct.attachments.ConnectionBase;
@@ -267,13 +268,12 @@ public class LogisticatorItem extends RetrieverItem {
 		RenderDuct.modelConnection[isPowered ? 1 : 2][side].render(ccRenderState, trans, new IconTransformation(LDTextures.LOGISTICATOR_BASE[stuffed ? 1 : 0][type]));
 		return true;
 	}
-	
-	/* NBT METHODS */
-	@Override
-	public void readFromNBT(NBTTagCompound tag) {
 
-		super.readFromNBT(tag);
-		
+	/* NBT METHODS */
+	
+	// Read from NBT tag without calling superclass' readFromNBT
+	private void readFromNBTNoSuper(NBTTagCompound tag)
+	{
 		if (filters == null)
 			createRoles();
 		
@@ -296,12 +296,10 @@ public class LogisticatorItem extends RetrieverItem {
 			}
 		}
 	}
-
-	@Override
-	public void writeToNBT(NBTTagCompound tag) {
-
-		super.writeToNBT(tag);
-		
+	
+	// Write to NBT tag without calling superclass' writeToNBT
+	private void writeToNBTNoSuper(NBTTagCompound tag)
+	{
 		if (filters == null)
 			createRoles();
 		
@@ -319,13 +317,35 @@ public class LogisticatorItem extends RetrieverItem {
 				tag.setString("Role" + i, roles[i].getName());
 		}
 	}
+	
+	@Override
+	public void readFromNBT(NBTTagCompound tag) {
+
+		super.readFromNBT(tag);
+		readFromNBTNoSuper(tag);
+	}
+
+	@Override
+	public void writeToNBT(NBTTagCompound tag) {
+
+		super.writeToNBT(tag);
+		writeToNBTNoSuper(tag);
+	}
 
 	/* IPortableData */
+	@Override
+	public void readPortableData(EntityPlayer player, NBTTagCompound tag) {
+
+		readFromNBTNoSuper(tag);
+		super.readPortableData(player, tag);
+	}
+	
 	@Override
 	public void writePortableData(EntityPlayer player, NBTTagCompound tag) {
 
 		super.writePortableData(player, tag);
 		tag.setString("DisplayType", "item.logisticsducts.logisticator.0.name");
+		writeToNBTNoSuper(tag);
 	}
 
 	@Override
