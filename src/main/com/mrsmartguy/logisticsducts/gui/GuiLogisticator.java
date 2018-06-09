@@ -1,10 +1,14 @@
 package com.mrsmartguy.logisticsducts.gui;
 
+import java.awt.Color;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
+import java.util.ArrayList;
+import java.util.Set;
 
 import com.mrsmartguy.logisticsducts.ducts.attachments.LogisticatorItem;
 import com.mrsmartguy.logisticsducts.gui.container.ContainerLogisticator;
+import com.mrsmartguy.logisticsducts.roles.LDRoleRegistry;
 import com.mrsmartguy.logisticsducts.roles.LogisticsRole;
 
 import cofh.core.gui.GuiContainerCore;
@@ -38,6 +42,14 @@ public class GuiLogisticator extends GuiDuctConnection {
 	
 	private ElementButton roleLeftButton;
 	private ElementButton roleRightButton;
+	
+	private ArrayList<String> roleStrings;
+	private ElementButton[] roleButtons;
+	
+	// Offset of role button from top edge of GUI
+	private static final int ROLE_BUTTON_TOP = 17;
+	// Vertical distance between role buttons
+	private static final int ROLE_BUTTON_DISTANCE = 2;
 
 	public GuiLogisticator(InventoryPlayer inventory, LogisticatorItem conBase) {
 		super(inventory, conBase);
@@ -116,6 +128,14 @@ public class GuiLogisticator extends GuiDuctConnection {
 		setElementVisible(decRetainSize, enabled);
 		setElementVisible(incRetainSize, enabled);
 		
+		for (ElementButton button : roleButtons)
+		{
+			// Role buttons are always invisible, they get manually drawn
+			// This is because we have to cover the slots drawn by GuiDuctConnector, which would happen
+			// after the buttons were drawn if they were drawn normally
+			button.setEnabled(!enabled);
+		}
+		
 		setStackSizeTextEnabled(enabled);
 	}
 	
@@ -155,7 +175,7 @@ public class GuiLogisticator extends GuiDuctConnection {
 				0, 22,  // disabled pos
 				14, 11, // size
 				BUTTON_TEX_PATH);
-		roleLeftButton.setTexture(BUTTON_TEX_PATH, 32, 64);
+		roleLeftButton.setTexture(BUTTON_TEX_PATH, 256, 64);
 		roleRightButton = new ElementButton(this,
 				145, 4, // Pos
 				ROLE_RIGHT_NAME,
@@ -164,7 +184,27 @@ public class GuiLogisticator extends GuiDuctConnection {
 				14, 22, // disabled pos
 				14, 11, // size
 				BUTTON_TEX_PATH);
-		roleRightButton.setTexture(BUTTON_TEX_PATH, 32, 64);
+		roleRightButton.setTexture(BUTTON_TEX_PATH, 256, 64);
+		
+		roleStrings = new ArrayList(LDRoleRegistry.getRoleNames());
+		
+		roleButtons = new ElementButton[roleStrings.size()];
+		
+		for (int i = 0; i < roleStrings.size(); i++)
+		{
+			roleButtons[i] = new ElementButton(this,
+					xSize / 2 - (162/2), ROLE_BUTTON_TOP + i * (13 + ROLE_BUTTON_DISTANCE),
+					"Role" + roleStrings.get(i),
+					28, 0,
+					28, 13,
+					28, 16,
+					162, 13,
+					BUTTON_TEX_PATH);
+			roleButtons[i].setTexture(BUTTON_TEX_PATH, 256, 64);					
+			roleButtons[i].setVisible(false);
+			addElement(roleButtons[i]);
+		}
+		
 		addElement(roleLeftButton);
 		addElement(roleRightButton);
 	}
@@ -273,6 +313,25 @@ public class GuiLogisticator extends GuiDuctConnection {
 		if (!container.activeRoleExists())
 		{
 			coverBackground();
+		}
+
+		// Draw role buttons and their labels
+		if (roleButtons[0].isEnabled())
+		{
+			GlStateManager.pushMatrix();
+			GlStateManager.translate(guiLeft, guiTop, 0.0F);
+			for (int i = 0; i < roleButtons.length; i++)
+			{
+				ElementButton button = roleButtons[i];
+				String roleName = roleStrings.get(i);
+				String roleNameLocalized = StringHelper.localize("item.logisticsducts.logisticator.role." + roleName);
+				int stringWidth = fontRenderer.getStringWidth(roleNameLocalized);
+				int nameXPos = button.getPosX() + (button.getWidth() / 2) - (stringWidth / 2);
+				int nameYPos = button.getPosY() + 3;
+				button.drawBackground(mouseX, mouseY, partialTick);
+				fontRenderer.drawStringWithShadow(roleNameLocalized, nameXPos, nameYPos, 0xE0E0E0);
+			}
+			GlStateManager.popMatrix();
 		}
 	}
 	

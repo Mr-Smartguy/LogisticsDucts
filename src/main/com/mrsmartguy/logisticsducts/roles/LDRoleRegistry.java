@@ -1,7 +1,8 @@
 package com.mrsmartguy.logisticsducts.roles;
 
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.function.Supplier;
 
@@ -13,7 +14,7 @@ import cofh.thermaldynamics.duct.tiles.TileGrid;
  */
 public class LDRoleRegistry {
 
-	private final static Map<String, Supplier<LogisticsRole>> REGISTRY = new HashMap<>();
+	private final static Map<String, Supplier<LogisticsRole>> REGISTRY = new LinkedHashMap<>();
 	
 	/**
 	 * Adds all of the roles in LogisticsDucts to the registry.
@@ -50,6 +51,15 @@ public class LDRoleRegistry {
 			return REGISTRY.get(roleName).get();
 		}
 		throw new RuntimeException("Illegal LogisticsRole name");
+	}
+	
+	/**
+	 * Returns a set of all role names
+	 * @return The set of all role names
+	 */
+	public static Set<String> getRoleNames()
+	{
+		return REGISTRY.keySet();
 	}
 
 }
