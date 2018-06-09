@@ -23,10 +23,15 @@ import codechicken.lib.render.CCRenderState;
 import codechicken.lib.vec.Translation;
 import codechicken.lib.vec.Vector3;
 import codechicken.lib.vec.uv.IconTransformation;
+import cofh.api.tileentity.IRedstoneControl.ControlMode;
+import cofh.core.network.PacketBase;
+import cofh.core.network.PacketHandler;
+import cofh.core.network.PacketTileInfo;
 import cofh.core.util.helpers.ItemHelper;
 import cofh.thermaldynamics.duct.Attachment;
 import cofh.thermaldynamics.duct.AttachmentRegistry;
 import cofh.thermaldynamics.duct.attachments.ConnectionBase;
+import cofh.thermaldynamics.duct.attachments.ConnectionBase.NETWORK_ID;
 import cofh.thermaldynamics.duct.attachments.filter.FilterLogic;
 import cofh.thermaldynamics.duct.attachments.retriever.RetrieverItem;
 import cofh.thermaldynamics.duct.item.DuctUnitItem;
@@ -92,6 +97,46 @@ public class LogisticatorItem extends RetrieverItem {
 	public void setRole(LogisticsRole newRole, int index)
 	{
 		roles[index] = newRole;
+		// Send an update to the server
+		if (baseTile.world().isRemote)
+		{
+			sendRoleUpdatePacket(newRole, index);
+		}
+		// Mark the chunk dirty to be saved and sent to players
+		else
+		{
+			baseTile.markDirty();
+		}
+	}
+	
+	/**
+	 * Sends a packet to the server to update the Role of the Logisticator server-side.
+	 */
+	private void sendRoleUpdatePacket(LogisticsRole newRole, int index)
+	{
+		PacketTileInfo packet = getNewPacket(LD_NETWORK_ID.ROLE);
+		packet.addString(newRole.getName());
+		packet.addByte(index);
+		PacketHandler.sendToServer(packet);
+	}
+	
+	/**
+	 * Handle incoming packets.
+	 */
+	@Override
+	public void handleInfoPacketType(byte a, PacketBase payload, boolean isServer, EntityPlayer player) {
+
+		if (a == LD_NETWORK_ID.ROLE)
+		{
+			String roleString = payload.getString();
+			int index = (int)payload.getByte();
+			LogisticsRole role = LDRoleRegistry.createRole(roleString);
+			setRole(role, index);
+		}
+		else
+		{
+			super.handleInfoPacketType(a, payload, isServer, player);
+		}
 	}
 	
 	/**
@@ -354,6 +399,15 @@ public class LogisticatorItem extends RetrieverItem {
 	 */
 	public void addPendingItem(TravelingItem traveling) {
 		pending.add(traveling);
+	}
+
+	/* More network IDs for use in LogisticsDucts
+	 * Should be compatible with ThermalDynamics' ConnectionBase.NETWORK_ID
+	 */
+	public static class LD_NETWORK_ID {
+
+		public final static byte ROLE = 70;
+
 	}
 
 }
