@@ -39,11 +39,9 @@ public class RoleExtractor extends LogisticsRole {
 		
 		// Find an item stack to pull from the inventory
 		for (int i = 0; i < handler.getSlots(); i++)
-		{
-			//TODO only grab stack size based on duct type
-			
+		{			
 			// Simulate pulling out of the inventory to see what ItemStack would be pulled
-			ItemStack curStack = handler.extractItem(i, Integer.MAX_VALUE, true);
+			ItemStack curStack = handler.extractItem(i, filter.getLevel(FilterLogic.levelStackSize), true);
 			// Check if the stack is empty, nonzero size and passes the associated filter
 			if (!curStack.isEmpty() && curStack.getCount() > 0 && filter.matchesFilter(curStack)) {
 				stack = curStack;

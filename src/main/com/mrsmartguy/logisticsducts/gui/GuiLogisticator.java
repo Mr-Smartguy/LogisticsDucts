@@ -104,7 +104,7 @@ public class GuiLogisticator extends GuiDuctConnection {
 	{
 		try {
 			isItemServoField.set(this, enabled);
-			isAdvItemFilterField.set(this, enabled);
+			isAdvItemFilterField.set(this, false);
 		} catch (IllegalAccessException e) {
 			e.printStackTrace();
 		}
@@ -128,8 +128,9 @@ public class GuiLogisticator extends GuiDuctConnection {
 		setElementVisible(decStackSize, enabled);
 		setElementVisible(incStackSize, enabled);
 
-		setElementVisible(decRetainSize, enabled);
-		setElementVisible(incRetainSize, enabled);
+		// Retain size is not used by logisticators, they use stack size of filter slots instead
+		setElementVisible(decRetainSize, false);
+		setElementVisible(incRetainSize, false);
 		
 		for (ElementButton button : roleButtons)
 		{

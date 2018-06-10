@@ -228,11 +228,11 @@ public class LogisticatorItem extends RetrieverItem {
 		return "item.logisticsducts.logisticator." + type + ".name";
 	}
 
-	@Override
+	/*@Override
 	public int tickDelay() {
 
 		return 5;
-	}
+	}*/
 	
 	/**
 	 * Verifies that all pending items are still in transit to this logisticator.
