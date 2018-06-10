@@ -146,6 +146,8 @@ public class GuiLogisticator extends GuiDuctConnection {
 		// Force the container to update slot positions
 		container.setActiveRoleIndex(container.getActiveRoleIndex());
 		
+		logisticator.setActiveRole(container.getActiveRoleIndex());
+		
 		updateButtonEnabledStates();
 	}
 	
@@ -154,6 +156,8 @@ public class GuiLogisticator extends GuiDuctConnection {
 
 		super.initGui();
 		addButtons();
+		
+		container.setActiveRoleIndex(0);
 		
 		roleChanged();
 	}
@@ -271,6 +275,8 @@ public class GuiLogisticator extends GuiDuctConnection {
 	protected void updateElementInformation() {
 		
 		int index = container.getActiveRoleIndex();
+		
+		logisticator.setActiveRole(index);
 		
 		if (container.activeRoleExists())
 		{

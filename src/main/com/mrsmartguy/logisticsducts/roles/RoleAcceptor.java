@@ -5,6 +5,7 @@ import java.util.Map;
 
 import com.mrsmartguy.logisticsducts.ducts.attachments.LogisticatorItem;
 
+import cofh.thermaldynamics.duct.attachments.filter.FilterLogic;
 import cofh.thermaldynamics.duct.item.DuctUnitItem;
 import cofh.thermaldynamics.multiblock.Route;
 import net.minecraft.item.ItemStack;
@@ -18,19 +19,23 @@ public class RoleAcceptor extends LogisticsRole {
 	}
 
 	@Override
-	public void performRole(LogisticatorItem logisticator, Map<LogisticatorItem, Route> network) {
+	public void performRole(LogisticatorItem logisticator, FilterLogic filter, Map<LogisticatorItem, Route> network) {
 		// Acceptors have no active role.
 	}
 
 	@Override
-	public int requestItems(LogisticatorItem logisticator, Route route, ItemStack items) {
+	public int requestItems(LogisticatorItem logisticator, FilterLogic filter, Route route, ItemStack items) {
 		// Acceptors do not request items.
 		return 0;
 	}
 
 	@Override
-	public int acceptsItems(LogisticatorItem logisticator, ItemStack items) {
+	public int acceptsItems(LogisticatorItem logisticator, FilterLogic filter, ItemStack items) {
 		// Acceptors will accept any items that pass the given filter that the attached inventory has space for
+		
+		// Check if the associated filter allows the items to be accepted
+		if (!filter.matchesFilter(items))
+			return 0;
 		
 		// Copy the item stack to prevent modifying the original
 		items = items.copy();
@@ -61,7 +66,7 @@ public class RoleAcceptor extends LogisticsRole {
 	}
 
 	@Override
-	public List<ItemStack> getProvidedItems(LogisticatorItem logisticator) {
+	public List<ItemStack> getProvidedItems(LogisticatorItem logisticator, FilterLogic filter) {
 		// Acceptors do not provide items.
 		return null;
 	}

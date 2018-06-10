@@ -6,6 +6,7 @@ import java.util.Map;
 
 import com.mrsmartguy.logisticsducts.ducts.attachments.LogisticatorItem;
 
+import cofh.thermaldynamics.duct.attachments.filter.FilterLogic;
 import cofh.thermaldynamics.duct.item.DuctUnitItem;
 import cofh.thermaldynamics.duct.item.TravelingItem;
 import cofh.thermaldynamics.multiblock.Route;
@@ -21,7 +22,7 @@ public class RoleExtractor extends LogisticsRole {
 	}
 
 	@Override
-	public void performRole(LogisticatorItem logisticator, Map<LogisticatorItem, Route> network) {
+	public void performRole(LogisticatorItem logisticator, FilterLogic filter, Map<LogisticatorItem, Route> network) {
 		// Extractors attempt to send the contents of the attached inventory
 		// to an appropriate acceptor in the logistics network
 		
@@ -43,7 +44,8 @@ public class RoleExtractor extends LogisticsRole {
 			
 			// Simulate pulling out of the inventory to see what ItemStack would be pulled
 			ItemStack curStack = handler.extractItem(i, Integer.MAX_VALUE, true);
-			if (!curStack.isEmpty() && curStack.getCount() > 0) {
+			// Check if the stack is empty, nonzero size and passes the associated filter
+			if (!curStack.isEmpty() && curStack.getCount() > 0 && filter.matchesFilter(curStack)) {
 				stack = curStack;
 				slot = i;
 				break;
@@ -81,19 +83,19 @@ public class RoleExtractor extends LogisticsRole {
 	}
 
 	@Override
-	public int requestItems(LogisticatorItem logisticator, Route route, ItemStack items) {
+	public int requestItems(LogisticatorItem logisticator, FilterLogic filter, Route route, ItemStack items) {
 		// Extractors do not provide items
 		return 0;
 	}
 
 	@Override
-	public int acceptsItems(LogisticatorItem logisticator, ItemStack items) {
+	public int acceptsItems(LogisticatorItem logisticator, FilterLogic filter, ItemStack items) {
 		// Extractors do not accept items
 		return 0;
 	}
 
 	@Override
-	public List<ItemStack> getProvidedItems(LogisticatorItem logisticator) {
+	public List<ItemStack> getProvidedItems(LogisticatorItem logisticator, FilterLogic filter) {
 		// Extractors do not provide items
 		return null;
 	}

@@ -181,7 +181,7 @@ public class ContainerLogisticator extends ContainerAttachmentBase {
 		// Clear the contents of the last filter
 		for (int slotIndex = 0; slotIndex < slotsPerFilter; slotIndex++)
 		{
-			filterSlots.get((filters.length - 1) * slotsPerFilter + slotIndex).putStack(ItemStack.EMPTY);;
+			filterSlots.get((filters.length - 1) * slotsPerFilter + slotIndex).putStack(ItemStack.EMPTY);
 		}
 	}
 	

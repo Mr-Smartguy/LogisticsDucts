@@ -70,6 +70,9 @@ public class LogisticatorItem extends RetrieverItem {
 	private FilterLogic[] filters = null;
 	private LogisticsRole[] roles = null;
 	private LogisticsRole[] prevRoles = null;
+	
+	// Keep track of role being edited
+	private int activeRole = -1;
 			
 	public LogisticatorItem(TileGrid tile, byte side) {
 		super(tile, side);
@@ -100,6 +103,20 @@ public class LogisticatorItem extends RetrieverItem {
 		return roles[index];
 	}
 	
+	/**
+	 * Sets the active role (used for editing purposes)
+	 * @param index
+	 */
+	public void setActiveRole(int index)
+	{
+		activeRole = index;
+		
+		if (filters == null)
+			createRoles();
+		
+		filter = filters[index];
+	}
+	
 	public void setRole(LogisticsRole newRole, int index)
 	{
 		roles[index] = newRole;
@@ -126,6 +143,28 @@ public class LogisticatorItem extends RetrieverItem {
 		PacketHandler.sendToServer(packet);
 	}
 	
+	@Override
+	public void sendFilterConfigPacketFlag(int flagType, boolean flag) {
+
+		PacketTileInfo packet = getNewPacket(NETWORK_ID.FILTERFLAG);
+		
+		packet.addByte(activeRole);
+		packet.addByte(flagType << 1 | (flag ? 1 : 0));
+		PacketHandler.sendToServer(packet);
+	}
+
+	@Override
+	public void sendFilterConfigPacketLevel(int levelType, int level) {
+
+		PacketTileInfo packet = getNewPacket(NETWORK_ID.FILTERLEVEL);
+
+		packet.addByte(activeRole);
+		packet.addByte(levelType);
+		packet.addShort(level);
+
+		PacketHandler.sendToServer(packet);
+	}
+	
 	/**
 	 * Handle incoming packets.
 	 */
@@ -141,6 +180,10 @@ public class LogisticatorItem extends RetrieverItem {
 		}
 		else
 		{
+			// Extract the role index if the packets were sent by the Logisticator implementation
+			// of the appropriate functions (see above)
+			if (a == NETWORK_ID.FILTERFLAG || a == NETWORK_ID.FILTERLEVEL)
+				setActiveRole((int)payload.getByte());
 			super.handleInfoPacketType(a, payload, isServer, player);
 		}
 	}
@@ -236,11 +279,16 @@ public class LogisticatorItem extends RetrieverItem {
 			}
 		}
 		
-		// Perform logistics roles
-		for (LogisticsRole role : roles)
+		if (roles != null)
 		{
-			if (role != null)
-				role.performRole(this, network);
+			// Perform logistics roles
+			for (int roleIndex = 0; roleIndex < roles.length; roleIndex++)
+			{
+				LogisticsRole role = roles[roleIndex];
+				FilterLogic filter = filters[roleIndex];
+				if (role != null)
+					role.performRole(this, filter, network);
+			}
 		}
 	}
 	
@@ -367,6 +415,9 @@ public class LogisticatorItem extends RetrieverItem {
 	@Override
 	public void sendGuiNetworkData(Container container, List<IContainerListener> players, boolean newListener) {
 		
+		// Set role to 0 to avoid sending incorrect data
+		setActiveRole(0);
+		
 		super.sendGuiNetworkData(container, players, newListener);
 		for (int i = 0; i < roles.length; i++)
 		{
@@ -390,14 +441,19 @@ public class LogisticatorItem extends RetrieverItem {
 		// Copy items to prevent modifying the original stack, in case the caller didn't do this already
 		items = items.copy();
 		int sent = 0;
-		for (LogisticsRole role : roles)
+		if (roles != null)
 		{
-			int curSent = role.requestItems(this, route, items);
-			sent += curSent;
-			if (items.getCount() < curSent)
-				items.shrink(curSent);
-			else
-				break;
+			for (int roleIndex = 0; roleIndex < roles.length; roleIndex++)
+			{
+				LogisticsRole role = roles[roleIndex];
+				FilterLogic filter = filters[roleIndex];
+				int curSent = role.requestItems(this, filter, route, items);
+				sent += curSent;
+				if (items.getCount() < curSent)
+					items.shrink(curSent);
+				else
+					break;
+			}
 		}
 		return sent;
 	}
@@ -410,20 +466,25 @@ public class LogisticatorItem extends RetrieverItem {
 	public List<ItemStack> getProvidedItems()
 	{
 		ArrayList<ItemStack> stacks = new ArrayList<ItemStack>();
-		for (LogisticsRole role : roles)
+		if (roles != null)
 		{
-			List<ItemStack> newStacks = role.getProvidedItems(this);
-			for (ItemStack curStack : newStacks)
+			for (int roleIndex = 0; roleIndex < roles.length; roleIndex++)
 			{
-				for (int i = 0; i < stacks.size(); i++)
+				LogisticsRole role = roles[roleIndex];
+				FilterLogic filter = filters[roleIndex];
+				List<ItemStack> newStacks = role.getProvidedItems(this, filter);
+				for (ItemStack curStack : newStacks)
 				{
-					if (ItemHandlerHelper.canItemStacksStack(curStack, stacks.get(i)))
+					for (int i = 0; i < stacks.size(); i++)
 					{
-						stacks.get(i).grow(curStack.getCount());
-					}
-					else
-					{
-						stacks.add(curStack);
+						if (ItemHandlerHelper.canItemStacksStack(curStack, stacks.get(i)))
+						{
+							stacks.get(i).grow(curStack.getCount());
+						}
+						else
+						{
+							stacks.add(curStack);
+						}
 					}
 				}
 			}
@@ -440,14 +501,19 @@ public class LogisticatorItem extends RetrieverItem {
 	{
 		int numAccepted = 0;
 		
-		for (LogisticsRole role : roles)
+		if (roles != null)
 		{
-			if (role != null)
+			for (int roleIndex = 0; roleIndex < roles.length; roleIndex++)
 			{
-				numAccepted += role.acceptsItems(this, items);
-				if (numAccepted > items.getCount()) 
+				LogisticsRole role = roles[roleIndex];
+				FilterLogic filter = filters[roleIndex];
+				if (role != null)
 				{
-					return items.getCount();
+					numAccepted += role.acceptsItems(this, filter, items);
+					if (numAccepted > items.getCount()) 
+					{
+						return items.getCount();
+					}
 				}
 			}
 		}
