@@ -78,9 +78,11 @@ dependencies {
     compile "cofh:CoFHCore:${mc_version}-${cofh_core_version}:deobf"
     compile "cofh:ThermalFoundation:${mc_version}-${tf_version}:deobf"
     compile "cofh:ThermalDynamics:${mc_version}-${td_version}:deobf"
+    compile "cofh:ThermalExpansion:${mc_version}-5.5.0.30:deobf"
     
     compile "codechicken:CodeChickenLib:${mc_version}-${ccl_version}:deobf"
     compile "mezz.jei:jei_${mc_version}:${jei_version}"
+    
 
 }
 
