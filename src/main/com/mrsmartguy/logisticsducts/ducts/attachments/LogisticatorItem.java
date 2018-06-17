@@ -31,9 +31,11 @@ import cofh.core.util.helpers.ItemHelper;
 import cofh.core.util.helpers.RedstoneControlHelper;
 import cofh.thermaldynamics.duct.Attachment;
 import cofh.thermaldynamics.duct.AttachmentRegistry;
+import cofh.thermaldynamics.duct.Duct.Type;
 import cofh.thermaldynamics.duct.attachments.ConnectionBase;
 import cofh.thermaldynamics.duct.attachments.ConnectionBase.NETWORK_ID;
 import cofh.thermaldynamics.duct.attachments.filter.FilterLogic;
+import cofh.thermaldynamics.duct.attachments.filter.IFilterItems;
 import cofh.thermaldynamics.duct.attachments.retriever.RetrieverItem;
 import cofh.thermaldynamics.duct.item.DuctUnitItem;
 import cofh.thermaldynamics.duct.item.TravelingItem;
@@ -60,7 +62,7 @@ import net.minecraftforge.fml.relauncher.SideOnly;
 import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.ItemHandlerHelper;
 
-public class LogisticatorItem extends RetrieverItem {
+public class LogisticatorItem extends RetrieverItem implements ILogisticator {
 	
 	private LinkedList<TravelingItem> pending = new LinkedList<TravelingItem>();
 	
@@ -197,6 +199,29 @@ public class LogisticatorItem extends RetrieverItem {
 			createRoles();
 		return filters;
 	}
+	
+	// Ensure that nothing other than logisticators sends to this
+	@Override
+	public IFilterItems getItemFilter() {
+		return new IFilterItems() {
+
+			@Override
+			public boolean matchesFilter(ItemStack item) {
+				return false;
+			}
+
+			@Override
+			public boolean shouldIncRouteItems() {
+				return false;
+			}
+
+			@Override
+			public int getMaxStock() {
+				return 0;
+			}
+			
+		};
+	}
 
 	@Override
 	public String getInfo() {
@@ -207,7 +232,7 @@ public class LogisticatorItem extends RetrieverItem {
 	@Override
 	public boolean isFilter() {
 
-		return true;
+		return false;
 	}
 
 	@Override
@@ -257,7 +282,7 @@ public class LogisticatorItem extends RetrieverItem {
 		
 		IItemHandler simulatedInv = getCachedInv();
 		
-		HashMap<LogisticatorItem, Route> network = new HashMap<LogisticatorItem, Route>();
+		HashMap<ILogisticator, Route> network = new HashMap<ILogisticator, Route>();
 		
 		// Make an unmodifiable copy of pending to prevent roles from modifying it unintentionally
 		List<TravelingItem> pendingUnmod = Collections.unmodifiableList(pending);
@@ -436,6 +461,7 @@ public class LogisticatorItem extends RetrieverItem {
 	 * Sends as many of the requested item to the destination along the given route via the logistics network.
 	 * @return The total number of items sent.
 	 */
+	@Override
 	public int requestItems(Route route, ItemStack items)
 	{
 		// Copy items to prevent modifying the original stack, in case the caller didn't do this already
@@ -463,6 +489,7 @@ public class LogisticatorItem extends RetrieverItem {
 	 * Warning! This method is worst-case O(n^2) with respect to the number of provided item stacks. Use with caution.
 	 * @return The list of all item stacks provided by this logisticator to the network.
 	 */
+	@Override
 	public List<ItemStack> getProvidedItems()
 	{
 		ArrayList<ItemStack> stacks = new ArrayList<ItemStack>();
@@ -497,6 +524,7 @@ public class LogisticatorItem extends RetrieverItem {
 	 * @param items The item stack to be accepted.
 	 * @return
 	 */
+	@Override
 	public int acceptsItems(ItemStack items)
 	{
 		int numAccepted = 0;
@@ -524,6 +552,7 @@ public class LogisticatorItem extends RetrieverItem {
 	 * Indicates to this logisticator that an item is pending delivery.
 	 * @param traveling The item traveling towards this logisticator.
 	 */
+	@Override
 	public void addPendingItem(TravelingItem traveling) {
 		pending.add(traveling);
 	}

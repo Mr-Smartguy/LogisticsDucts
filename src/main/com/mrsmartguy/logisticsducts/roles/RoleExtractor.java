@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.mrsmartguy.logisticsducts.ducts.attachments.ILogisticator;
 import com.mrsmartguy.logisticsducts.ducts.attachments.LogisticatorItem;
 
 import cofh.thermaldynamics.duct.attachments.filter.FilterLogic;
@@ -22,7 +23,7 @@ public class RoleExtractor extends LogisticsRole {
 	}
 
 	@Override
-	public void performRole(LogisticatorItem logisticator, FilterLogic filter, Map<LogisticatorItem, Route> network) {
+	public void performRole(LogisticatorItem logisticator, FilterLogic filter, Map<ILogisticator, Route> network) {
 		// Extractors attempt to send the contents of the attached inventory
 		// to an appropriate acceptor in the logistics network
 		
@@ -53,7 +54,7 @@ public class RoleExtractor extends LogisticsRole {
 		// If a stack was found, extract it
 		if (stack != null)
 		{
-			for (Map.Entry<LogisticatorItem, Route> endpoint : network.entrySet())
+			for (Map.Entry<ILogisticator, Route> endpoint : network.entrySet())
 			{
 				int numAccepted = endpoint.getKey().acceptsItems(stack);
 				if (numAccepted > 0)
@@ -82,19 +83,25 @@ public class RoleExtractor extends LogisticsRole {
 
 	@Override
 	public int requestItems(LogisticatorItem logisticator, FilterLogic filter, Route route, ItemStack items) {
-		// Extractors do not provide items
+		// Extractors do not provide items.
 		return 0;
 	}
 
 	@Override
 	public int acceptsItems(LogisticatorItem logisticator, FilterLogic filter, ItemStack items) {
-		// Extractors do not accept items
+		// Extractors do not accept items.
 		return 0;
 	}
 
 	@Override
 	public List<ItemStack> getProvidedItems(LogisticatorItem logisticator, FilterLogic filter) {
-		// Extractors do not provide items
+		// Extractors do not provide items.
+		return null;
+	}
+
+	@Override
+	public List<ItemStack> getCraftedItems(LogisticatorItem logisticator, FilterLogic filter) {
+		// Extractors do not craft items.
 		return null;
 	}
 

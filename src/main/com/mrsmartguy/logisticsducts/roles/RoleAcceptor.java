@@ -3,6 +3,7 @@ package com.mrsmartguy.logisticsducts.roles;
 import java.util.List;
 import java.util.Map;
 
+import com.mrsmartguy.logisticsducts.ducts.attachments.ILogisticator;
 import com.mrsmartguy.logisticsducts.ducts.attachments.LogisticatorItem;
 
 import cofh.thermaldynamics.duct.attachments.filter.FilterLogic;
@@ -19,7 +20,7 @@ public class RoleAcceptor extends LogisticsRole {
 	}
 
 	@Override
-	public void performRole(LogisticatorItem logisticator, FilterLogic filter, Map<LogisticatorItem, Route> network) {
+	public void performRole(LogisticatorItem logisticator, FilterLogic filter, Map<ILogisticator, Route> network) {
 		// Acceptors have no active role.
 	}
 
@@ -68,6 +69,12 @@ public class RoleAcceptor extends LogisticsRole {
 	@Override
 	public List<ItemStack> getProvidedItems(LogisticatorItem logisticator, FilterLogic filter) {
 		// Acceptors do not provide items.
+		return null;
+	}
+
+	@Override
+	public List<ItemStack> getCraftedItems(LogisticatorItem logisticator, FilterLogic filter) {
+		// Acceptors do not craft items.
 		return null;
 	}
 

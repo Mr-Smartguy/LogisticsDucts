@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import com.mrsmartguy.logisticsducts.ducts.attachments.ILogisticator;
 import com.mrsmartguy.logisticsducts.ducts.attachments.LogisticatorItem;
 
 import cofh.thermaldynamics.duct.attachments.filter.FilterLogic;
@@ -21,7 +22,7 @@ public class RoleProvider extends LogisticsRole {
 	}
 
 	@Override
-	public void performRole(LogisticatorItem logisticator, FilterLogic filter, Map<LogisticatorItem, Route> network) {
+	public void performRole(LogisticatorItem logisticator, FilterLogic filter, Map<ILogisticator, Route> network) {
 		// Providers have no active role.
 	}
 
@@ -61,6 +62,12 @@ public class RoleProvider extends LogisticsRole {
 		}
 		
 		return stacks;
+	}
+
+	@Override
+	public List<ItemStack> getCraftedItems(LogisticatorItem logisticator, FilterLogic filter) {
+		// Providers do not craft items.
+		return null;
 	}
 
 }
