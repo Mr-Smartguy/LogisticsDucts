@@ -50,25 +50,25 @@ public class RoleRequester extends LogisticsRole {
 
 	@Override
 	public int requestItems(LogisticatorItem logisticator, FilterLogic filter, IGridTileRoute target, byte finalDir, ItemStack items) {
-		// TODO Auto-generated method stub
+		// Requesters do not provide any items.
 		return 0;
 	}
 
 	@Override
 	public int acceptsItems(LogisticatorItem logisticator, FilterLogic filter, ItemStack items) {
-		// TODO Auto-generated method stub
+		// Requesters do not accept any items.
 		return 0;
 	}
 
 	@Override
 	public List<ItemStack> getProvidedItems(LogisticatorItem logisticator, FilterLogic filter) {
-		// TODO Auto-generated method stub
+		// Requesters do not provide any items.
 		return null;
 	}
 
 	@Override
 	public List<ItemStack> getCraftedItems(LogisticatorItem logisticator, FilterLogic filter) {
-		// TODO Auto-generated method stub
+		// Requesters do not craft any items.
 		return null;
 	}
 
