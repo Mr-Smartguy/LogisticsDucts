@@ -8,6 +8,7 @@ import com.mrsmartguy.logisticsducts.ducts.attachments.LogisticatorItem;
 
 import cofh.thermaldynamics.duct.attachments.filter.FilterLogic;
 import cofh.thermaldynamics.duct.item.DuctUnitItem;
+import cofh.thermaldynamics.multiblock.IGridTileRoute;
 import cofh.thermaldynamics.multiblock.Route;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.items.IItemHandler;
@@ -29,8 +30,8 @@ public class RoleAcceptor extends LogisticsRole {
 	}
 
 	@Override
-	public int requestItems(LogisticatorItem logisticator, FilterLogic filter, Map<ILogisticator, Route> network, Route route, ItemStack items) {
-		// Acceptors do not request items.
+	public int requestItems(LogisticatorItem logisticator, FilterLogic filter, IGridTileRoute target, byte finalDir, ItemStack items) {
+		// Acceptors do not provide items.
 		return 0;
 	}
 

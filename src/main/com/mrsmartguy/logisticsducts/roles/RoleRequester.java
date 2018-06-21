@@ -2,6 +2,8 @@ package com.mrsmartguy.logisticsducts.roles;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Optional;
 
 import com.mrsmartguy.logisticsducts.ducts.attachments.ILogisticator;
 import com.mrsmartguy.logisticsducts.ducts.attachments.LogisticatorItem;
@@ -11,21 +13,37 @@ import cofh.thermaldynamics.multiblock.IGridTileRoute;
 import cofh.thermaldynamics.multiblock.Route;
 import net.minecraft.item.ItemStack;
 
-public class RoleCrafter extends LogisticsRole {
+public class RoleRequester extends LogisticsRole {
 
 	@Override
 	public String getName() {
-		return "crafter";
+		return "requester";
 	}
 	
-	// Crafters should only have single item stacks in the filter (recipes)
+	// Requesters should only have single item stacks in the filter (the requested items)
 	@Override
 	public boolean filterHasStackSize() { return false; }
 
 	@Override
 	public void performRole(LogisticatorItem logisticator, FilterLogic filter, Map<ILogisticator, Route> network) {
-		// TODO Auto-generated method stub
-
+		// Request items from any logisticators on the network
+		for (Entry<ILogisticator, Route> entry : network.entrySet())
+		{
+			ILogisticator target = entry.getKey();
+			
+			List<ItemStack> provided = target.getProvidedItems();
+			
+			for (ItemStack curRequest : filter.getFilterStacks())
+			{
+				Optional<ItemStack> opt = provided.stream().filter(stack -> ItemStack.areItemsEqual(stack, curRequest)).findFirst();
+				
+				if (opt.isPresent())
+				{
+					target.requestItems(network, logisticator.itemDuct, logisticator.side, curRequest);
+					return;
+				}
+			}
+		}
 	}
 
 	@Override
@@ -48,6 +66,7 @@ public class RoleCrafter extends LogisticsRole {
 
 	@Override
 	public List<ItemStack> getCraftedItems(LogisticatorItem logisticator, FilterLogic filter) {
+		// TODO Auto-generated method stub
 		return null;
 	}
 

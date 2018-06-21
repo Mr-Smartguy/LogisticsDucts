@@ -10,6 +10,8 @@ import com.mrsmartguy.logisticsducts.ducts.attachments.LogisticatorItem;
 
 import cofh.thermaldynamics.duct.attachments.filter.FilterLogic;
 import cofh.thermaldynamics.duct.item.DuctUnitItem;
+import cofh.thermaldynamics.duct.item.TravelingItem;
+import cofh.thermaldynamics.multiblock.IGridTileRoute;
 import cofh.thermaldynamics.multiblock.Route;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.items.IItemHandler;
@@ -27,9 +29,40 @@ public class RoleProvider extends LogisticsRole {
 	}
 
 	@Override
-	public int requestItems(LogisticatorItem logisticator, FilterLogic filter, Map<ILogisticator, Route> network, Route route, ItemStack items) {
-		// TODO implement items being requested.
-		return 0;
+	public int requestItems(LogisticatorItem logisticator, FilterLogic filter, IGridTileRoute target, byte finalDir, ItemStack items) {
+		
+		// Send up to the desired number of the given item on the route
+		int numSent = 0;
+		
+		// Get the cache attached to the logisticator
+		DuctUnitItem.Cache cache = logisticator.itemDuct.tileCache[logisticator.side];
+		if (cache == null) return 0;
+		
+		// Get the handler for the side of the inventory attached to the duct
+		IItemHandler handler = cache.getItemHandler(logisticator.side ^ 1);
+		if (handler == null) return 0;
+		
+		// Find any stacks that match the filter
+		for (int i = 0; i < handler.getSlots() && numSent < items.getCount(); i++)
+		{
+			// Check the contents of this slot
+			ItemStack curStack = handler.getStackInSlot(i);
+			
+			if (!curStack.isEmpty() && curStack.getCount() > 0 && filter.matchesFilter(curStack))
+			{
+				if (ItemStack.areItemsEqual(curStack, items) && ItemStack.areItemStackShareTagsEqual(curStack, items))
+				{
+					ItemStack stackPulled = handler.extractItem(i, items.getCount(), false);
+					Route route = logisticator.itemDuct.getRoute(target).copy();
+					route.pathDirections.add(finalDir);
+					TravelingItem traveling = new TravelingItem(stackPulled, logisticator.itemDuct, route, (byte) (logisticator.side ^ 1), logisticator.getSpeed());
+					logisticator.itemDuct.insertNewItem(traveling);
+					numSent += stackPulled.getCount();
+					
+				}
+			}
+		}
+		return numSent;
 	}
 
 	@Override

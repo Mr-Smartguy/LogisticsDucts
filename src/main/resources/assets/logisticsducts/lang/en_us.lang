@@ -19,3 +19,4 @@ item.logisticsducts.logisticator.role.acceptor=Acceptor
 item.logisticsducts.logisticator.role.crafter=Crafter
 item.logisticsducts.logisticator.role.extractor=Extractor
 item.logisticsducts.logisticator.role.provider=Provider
+item.logisticsducts.logisticator.role.requester=Requester

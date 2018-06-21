@@ -10,6 +10,7 @@ import com.mrsmartguy.logisticsducts.ducts.attachments.LogisticatorItem;
 import cofh.thermaldynamics.duct.attachments.filter.FilterLogic;
 import cofh.thermaldynamics.duct.item.DuctUnitItem;
 import cofh.thermaldynamics.duct.item.TravelingItem;
+import cofh.thermaldynamics.multiblock.IGridTileRoute;
 import cofh.thermaldynamics.multiblock.Route;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.item.ItemStack;
@@ -82,7 +83,7 @@ public class RoleExtractor extends LogisticsRole {
 	}
 
 	@Override
-	public int requestItems(LogisticatorItem logisticator, FilterLogic filter, Map<ILogisticator, Route> network, Route route, ItemStack items) {
+	public int requestItems(LogisticatorItem logisticator, FilterLogic filter, IGridTileRoute target, byte finalDir, ItemStack items) {
 		// Extractors do not provide items.
 		return 0;
 	}

@@ -30,6 +30,7 @@ public class LDRoleRegistry {
 		registerRole(RoleCrafter::new);
 		registerRole(RoleExtractor::new);
 		registerRole(RoleProvider::new);
+		registerRole(RoleRequester::new);
 	}
 	
 	/**

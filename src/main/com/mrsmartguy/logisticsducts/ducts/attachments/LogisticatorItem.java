@@ -42,6 +42,7 @@ import cofh.thermaldynamics.duct.item.DuctUnitItem;
 import cofh.thermaldynamics.duct.item.TravelingItem;
 import cofh.thermaldynamics.duct.tiles.TileGrid;
 import cofh.thermaldynamics.gui.client.GuiDuctConnection;
+import cofh.thermaldynamics.multiblock.IGridTileRoute;
 import cofh.thermaldynamics.multiblock.Route;
 import cofh.thermaldynamics.multiblock.RouteCache;
 import cofh.thermaldynamics.render.RenderDuct;
@@ -240,14 +241,14 @@ public class LogisticatorItem extends RetrieverItem implements ILogisticator {
 		return filters;
 	}
 	
-	// Ensure that nothing other than logisticators sends to this
+	// Allow all items through the filter
 	@Override
 	public IFilterItems getItemFilter() {
 		return new IFilterItems() {
 
 			@Override
 			public boolean matchesFilter(ItemStack item) {
-				return false;
+				return true;
 			}
 
 			@Override
@@ -257,7 +258,7 @@ public class LogisticatorItem extends RetrieverItem implements ILogisticator {
 
 			@Override
 			public int getMaxStock() {
-				return 0;
+				return Integer.MAX_VALUE;
 			}
 			
 		};
@@ -502,7 +503,7 @@ public class LogisticatorItem extends RetrieverItem implements ILogisticator {
 	 * @return The total number of items sent.
 	 */
 	@Override
-	public int requestItems(Map<ILogisticator, Route> network, Route route, ItemStack items)
+	public int requestItems(Map<ILogisticator, Route> network, IGridTileRoute target, byte finalDir, ItemStack items)
 	{
 		// Copy items to prevent modifying the original stack, in case the caller didn't do this already
 		items = items.copy();
@@ -513,9 +514,9 @@ public class LogisticatorItem extends RetrieverItem implements ILogisticator {
 			{
 				LogisticsRole role = roles[roleIndex];
 				FilterLogic filter = filters[roleIndex];
-				int curSent = role.requestItems(this, filter, network, route, items);
+				int curSent = role.requestItems(this, filter, target, finalDir, items);
 				sent += curSent;
-				if (items.getCount() < curSent)
+				if (items.getCount() > curSent)
 					items.shrink(curSent);
 				else
 					break;
@@ -539,18 +540,25 @@ public class LogisticatorItem extends RetrieverItem implements ILogisticator {
 			{
 				LogisticsRole role = roles[roleIndex];
 				FilterLogic filter = filters[roleIndex];
-				List<ItemStack> newStacks = role.getProvidedItems(this, filter);
-				for (ItemStack curStack : newStacks)
+				if (role != null)
 				{
-					for (int i = 0; i < stacks.size(); i++)
+					List<ItemStack> newStacks = role.getProvidedItems(this, filter);
+					if (newStacks != null)
 					{
-						if (ItemHandlerHelper.canItemStacksStack(curStack, stacks.get(i)))
+						for (ItemStack curStack : newStacks)
 						{
-							stacks.get(i).grow(curStack.getCount());
-						}
-						else
-						{
-							stacks.add(curStack);
+							boolean added = false;
+							for (int i = 0; i < stacks.size(); i++)
+							{
+								if (ItemHandlerHelper.canItemStacksStack(curStack, stacks.get(i)))
+								{
+									added = true;
+									stacks.get(i).grow(curStack.getCount());
+									break;
+								}
+							}
+							if (!added)
+								stacks.add(curStack);
 						}
 					}
 				}
@@ -595,6 +603,27 @@ public class LogisticatorItem extends RetrieverItem implements ILogisticator {
 	@Override
 	public void addPendingItem(TravelingItem traveling) {
 		pending.add(traveling);
+	}
+
+	@Override
+	public void handleStuffedItems() {
+
+		for (Iterator<ItemStack> iterator = stuffedItems.iterator(); iterator.hasNext(); ) {
+			ItemStack stuffedItem = iterator.next();
+			for (FilterLogic curFilter : filters)
+			{
+				if (curFilter == null || !curFilter.matchesFilter(stuffedItem)) {
+					continue;
+				}
+
+				stuffedItem.setCount(itemDuct.insertIntoInventory(stuffedItem, side));
+				if (stuffedItem.getCount() <= 0) {
+					iterator.remove();
+					break;
+				}
+			}
+		}
+		super.handleStuffedItems();
 	}
 	
 	

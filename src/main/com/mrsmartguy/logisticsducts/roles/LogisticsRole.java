@@ -8,6 +8,7 @@ import com.mrsmartguy.logisticsducts.ducts.attachments.ILogisticator;
 import com.mrsmartguy.logisticsducts.ducts.attachments.LogisticatorItem;
 
 import cofh.thermaldynamics.duct.attachments.filter.FilterLogic;
+import cofh.thermaldynamics.multiblock.IGridTileRoute;
 import cofh.thermaldynamics.multiblock.Route;
 import net.minecraft.item.ItemStack;
 
@@ -31,7 +32,7 @@ public abstract class LogisticsRole {
 	/**
 	 * Performs the function of this role (e.g. keep stock, request).
 	 * @param logisticator The logisticator that possesses this role.
-	 * @param filter The filter that corresponds to this role in the logisticator
+	 * @param filter The filter that corresponds to this role in the logisticator.
 	 * @param logisticators The logistics network, minus the logisticator that possesses this role.
 	 */
 	public abstract void performRole(LogisticatorItem logisticator, FilterLogic filter, Map<ILogisticator, Route> network);
@@ -39,17 +40,17 @@ public abstract class LogisticsRole {
 	/**
 	 * Attempts to send the requested items along the given route.
 	 * @param logisticator The logisticator that possesses this role.
-	 * @param filter The filter that corresponds to this role in the logisticator
-	 * @param network TODO
-	 * @param route The route to send the items along.
+	 * @param filter The filter that corresponds to this role in the logisticator.
+	 * @param target The target tile to send the item to.
+	 * @param finalDir The final direction of the route.
 	 * @param items The requested items.
 	 * @return The total number of items sent.
 	 */
-	public abstract int requestItems(LogisticatorItem logisticator, FilterLogic filter, Map<ILogisticator, Route> network, Route route, ItemStack items);
+	public abstract int requestItems(LogisticatorItem logisticator, FilterLogic filter, IGridTileRoute target, byte finalDir, ItemStack items);
 	
 	/**
 	 * Determines how much of a given stack can be accepted by this role.
-	 * @param filter The filter that corresponds to this role in the logisticator
+	 * @param filter The filter that corresponds to this role in the logisticator.
 	 * @param logisticator The logisticator that possesses this role.
 	 * @param items The item stack to be accepted.
 	 * @return The number of items from the stack that can be accepted.
@@ -59,7 +60,7 @@ public abstract class LogisticsRole {
 	/**
 	 * Returns a list of all item stacks provided by this role.
 	 * @param logisticator The logisticator that possesses this role.
-	 * @param filter The filter that corresponds to this role in the logisticator
+	 * @param filter The filter that corresponds to this role in the logisticator.
 	 * @return The list of all item stacks provided by this role.
 	 */
 	public abstract List<ItemStack> getProvidedItems(LogisticatorItem logisticator, FilterLogic filter);
@@ -67,7 +68,7 @@ public abstract class LogisticsRole {
 	/**
 	 * Returns a list of all items that can be crafted by this role.
 	 * @param logisticator The logisticator that possesses this role.
-	 * @param filter The filter that corresponds to this role in the logisticator
+	 * @param filter The filter that corresponds to this role in the logisticator.
 	 * @return The list of item stacks that can be crafted by this role.
 	 */
 	public abstract List<ItemStack> getCraftedItems(LogisticatorItem logisticator, FilterLogic filter);
