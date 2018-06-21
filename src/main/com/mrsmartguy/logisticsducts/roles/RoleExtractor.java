@@ -22,6 +22,10 @@ public class RoleExtractor extends LogisticsRole {
 	public String getName() {
 		return "extractor";
 	}
+	
+	// Extractors should only have single item stacks in the filter (extracted items)
+	@Override
+	public boolean filterHasStackSize() { return false; }
 
 	@Override
 	public void performRole(LogisticatorItem logisticator, FilterLogic filter, Map<ILogisticator, Route> network) {

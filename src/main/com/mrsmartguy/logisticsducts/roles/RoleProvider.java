@@ -22,6 +22,10 @@ public class RoleProvider extends LogisticsRole {
 	public String getName() {
 		return "provider";
 	}
+	
+	// Providers should only have single item stacks in the filter (provided items)
+	@Override
+	public boolean filterHasStackSize() { return false; }
 
 	@Override
 	public void performRole(LogisticatorItem logisticator, FilterLogic filter, Map<ILogisticator, Route> network) {

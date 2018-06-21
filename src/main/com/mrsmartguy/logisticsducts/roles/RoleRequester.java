@@ -35,11 +35,13 @@ public class RoleRequester extends LogisticsRole {
 			
 			for (ItemStack curRequest : filter.getFilterStacks())
 			{
-				Optional<ItemStack> opt = provided.stream().filter(stack -> ItemStack.areItemsEqual(stack, curRequest)).findFirst();
+				final ItemStack curRequestWithSize = curRequest.copy();
+				curRequestWithSize.setCount(filter.getLevel(FilterLogic.levelStackSize));
+				Optional<ItemStack> opt = provided.stream().filter(stack -> ItemStack.areItemsEqual(stack, curRequestWithSize)).findFirst();
 				
 				if (opt.isPresent())
 				{
-					target.requestItems(network, logisticator.itemDuct, logisticator.side, curRequest);
+					target.requestItems(network, logisticator.itemDuct, logisticator.side, curRequestWithSize);
 					return;
 				}
 			}
