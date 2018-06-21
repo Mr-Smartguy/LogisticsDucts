@@ -28,7 +28,7 @@ public class RoleCrafter extends LogisticsRole {
 	}
 
 	@Override
-	public int requestItems(LogisticatorItem logisticator, FilterLogic filter, Route route, ItemStack items) {
+	public int requestItems(LogisticatorItem logisticator, FilterLogic filter, Map<ILogisticator, Route> network, Route route, ItemStack items) {
 		// TODO Auto-generated method stub
 		return 0;
 	}

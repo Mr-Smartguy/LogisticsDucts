@@ -18,6 +18,10 @@ public class RoleAcceptor extends LogisticsRole {
 	public String getName() {
 		return "acceptor";
 	}
+	
+	// Acceptors should only have single item stacks in the filter (accepted items)
+	@Override
+	public boolean filterHasStackSize() { return false; }
 
 	@Override
 	public void performRole(LogisticatorItem logisticator, FilterLogic filter, Map<ILogisticator, Route> network) {
@@ -25,7 +29,7 @@ public class RoleAcceptor extends LogisticsRole {
 	}
 
 	@Override
-	public int requestItems(LogisticatorItem logisticator, FilterLogic filter, Route route, ItemStack items) {
+	public int requestItems(LogisticatorItem logisticator, FilterLogic filter, Map<ILogisticator, Route> network, Route route, ItemStack items) {
 		// Acceptors do not request items.
 		return 0;
 	}

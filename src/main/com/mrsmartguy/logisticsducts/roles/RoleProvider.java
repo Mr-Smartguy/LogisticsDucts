@@ -27,7 +27,7 @@ public class RoleProvider extends LogisticsRole {
 	}
 
 	@Override
-	public int requestItems(LogisticatorItem logisticator, FilterLogic filter, Route route, ItemStack items) {
+	public int requestItems(LogisticatorItem logisticator, FilterLogic filter, Map<ILogisticator, Route> network, Route route, ItemStack items) {
 		// TODO implement items being requested.
 		return 0;
 	}

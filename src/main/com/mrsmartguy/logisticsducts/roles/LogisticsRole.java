@@ -40,11 +40,12 @@ public abstract class LogisticsRole {
 	 * Attempts to send the requested items along the given route.
 	 * @param logisticator The logisticator that possesses this role.
 	 * @param filter The filter that corresponds to this role in the logisticator
+	 * @param network TODO
 	 * @param route The route to send the items along.
 	 * @param items The requested items.
 	 * @return The total number of items sent.
 	 */
-	public abstract int requestItems(LogisticatorItem logisticator, FilterLogic filter, Route route, ItemStack items);
+	public abstract int requestItems(LogisticatorItem logisticator, FilterLogic filter, Map<ILogisticator, Route> network, Route route, ItemStack items);
 	
 	/**
 	 * Determines how much of a given stack can be accepted by this role.

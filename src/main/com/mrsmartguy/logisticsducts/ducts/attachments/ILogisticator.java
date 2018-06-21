@@ -2,6 +2,7 @@ package com.mrsmartguy.logisticsducts.ducts.attachments;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import com.mrsmartguy.logisticsducts.roles.LogisticsRole;
 
@@ -16,7 +17,7 @@ public interface ILogisticator {
 	 * Sends as many of the requested item to the destination along the given route via the logistics network.
 	 * @return The total number of items sent.
 	 */
-	public int requestItems(Route route, ItemStack items);
+	public int requestItems(Map<ILogisticator, Route> network, Route route, ItemStack items);
 	/**
 	 * Gets a list of all item stacks that can be provided to the logistics network by this logisticator.
 	 * Warning! This method is worst-case O(n^2) with respect to the number of provided item stacks. Use with caution.

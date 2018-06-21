@@ -7,6 +7,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 import com.mrsmartguy.logisticsducts.LogisticsDucts;
 import com.mrsmartguy.logisticsducts.gui.GuiLogisticator;
@@ -501,7 +502,7 @@ public class LogisticatorItem extends RetrieverItem implements ILogisticator {
 	 * @return The total number of items sent.
 	 */
 	@Override
-	public int requestItems(Route route, ItemStack items)
+	public int requestItems(Map<ILogisticator, Route> network, Route route, ItemStack items)
 	{
 		// Copy items to prevent modifying the original stack, in case the caller didn't do this already
 		items = items.copy();
@@ -512,7 +513,7 @@ public class LogisticatorItem extends RetrieverItem implements ILogisticator {
 			{
 				LogisticsRole role = roles[roleIndex];
 				FilterLogic filter = filters[roleIndex];
-				int curSent = role.requestItems(this, filter, route, items);
+				int curSent = role.requestItems(this, filter, network, route, items);
 				sent += curSent;
 				if (items.getCount() < curSent)
 					items.shrink(curSent);
