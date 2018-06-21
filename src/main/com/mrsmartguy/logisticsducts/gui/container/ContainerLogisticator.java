@@ -4,6 +4,7 @@ import java.util.LinkedList;
 
 import com.mrsmartguy.logisticsducts.ducts.attachments.LogisticatorItem;
 import com.mrsmartguy.logisticsducts.gui.slot.SlotFilterStack;
+import com.mrsmartguy.logisticsducts.roles.LogisticsRole;
 
 import cofh.core.gui.slot.SlotFalseCopy;
 import cofh.core.util.helpers.ItemHelper;
@@ -107,6 +108,18 @@ public class ContainerLogisticator extends ContainerAttachmentBase {
 	}
 	
 	/**
+	 * Checks if the currently selected role exists for a given player.
+	 * @return True if the currently selected role exists, false otherwise
+	 */
+	public boolean activeRoleExists(String playerName)
+	{
+		int playerRoleIndex = tile.getPlayerRoleIndex(playerName);
+		if (playerRoleIndex == -1)
+			return false;
+		return (tile.getRole(playerRoleIndex) != null);
+	}
+	
+	/**
 	 * Makes the currently active role's slots move offscreen.
 	 * Used to select a new role in a logisticator's gui.
 	 */
@@ -191,6 +204,29 @@ public class ContainerLogisticator extends ContainerAttachmentBase {
 		Slot slot = slotId < 0 ? null : this.inventorySlots.get(slotId);
 		
 		if (slot instanceof SlotFilterStack) {
+			// Whether the filter slots should be allowed any stack size (true)
+			// or be restricted to a stack size of one (false)
+			boolean hasStackSize = true;
+			
+			boolean roleExists;
+			
+			// Client side, active role index is player's active role index
+			if (tile.baseTile.world().isRemote)
+			{
+				roleExists = activeRoleExists();
+			}
+			// Server side, get player's active role index
+			else
+			{
+				roleExists = activeRoleExists(player.getName());
+			}
+			
+			if (roleExists)
+			{
+				LogisticsRole role = tile.getRole(tile.getPlayerRoleIndex(player.getName()));
+				hasStackSize = role.filterHasStackSize();
+			}
+			
 			// Cancel dragging, not applicable here
 			resetDrag();
 			
@@ -250,6 +286,11 @@ public class ContainerLogisticator extends ContainerAttachmentBase {
 					newStack = playerStack.copy();
 				}
 			}
+			
+			// Set size to 1 if the role doesn't allow for stack sizes greater than one
+			if (!hasStackSize)
+				newStack.setCount(1);
+			
 			slot.putStack(newStack);
 			slot.onSlotChanged();
 			return player.inventory.getItemStack();

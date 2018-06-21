@@ -73,6 +73,8 @@ public class LogisticatorItem extends RetrieverItem implements ILogisticator {
 	private LogisticsRole[] roles = null;
 	private LogisticsRole[] prevRoles = null;
 	
+	private HashMap<String, Integer> playerTabMap = new HashMap<String, Integer>();
+	
 	// Keep track of role being edited
 	private int activeRole = -1;
 			
@@ -145,6 +147,19 @@ public class LogisticatorItem extends RetrieverItem implements ILogisticator {
 		PacketHandler.sendToServer(packet);
 	}
 	
+	/**
+	 * Send a packet to the server to update the tab that the given player is currently in
+	 * @param playerName 
+	 * @param tab
+	 */
+	public void sendPlayerGuiTabPacket(String playerName, int tab)
+	{
+		PacketTileInfo packet = getNewPacket(LD_NETWORK_ID.PLAYERTAB);
+		packet.addString(playerName);
+		packet.addByte(tab);
+		PacketHandler.sendToServer(packet);
+	}
+	
 	@Override
 	public void sendFilterConfigPacketFlag(int flagType, boolean flag) {
 
@@ -180,6 +195,12 @@ public class LogisticatorItem extends RetrieverItem implements ILogisticator {
 			LogisticsRole role = LDRoleRegistry.createRole(roleString);
 			setRole(role, index);
 		}
+		else if (a == LD_NETWORK_ID.PLAYERTAB)
+		{
+			String playerName = payload.getString();
+			int tab = (int)payload.getByte();
+			playerTabMap.put(playerName, tab);
+		}
 		else
 		{
 			// Extract the role index if the packets were sent by the Logisticator implementation
@@ -187,6 +208,24 @@ public class LogisticatorItem extends RetrieverItem implements ILogisticator {
 			if (a == NETWORK_ID.FILTERFLAG || a == NETWORK_ID.FILTERLEVEL)
 				setActiveRole((int)payload.getByte());
 			super.handleInfoPacketType(a, payload, isServer, player);
+		}
+	}
+	
+	public int getPlayerRoleIndex(String playerName)
+	{
+		// Player side, just return active role index
+		if (baseTile.world().isRemote)
+		{
+			return activeRole;
+		}
+		// Server side, return from map
+		else
+		{
+			if (playerTabMap.containsKey(playerName))
+			{
+				return playerTabMap.get(playerName);
+			}
+			return 0;
 		}
 	}
 	
@@ -572,6 +611,7 @@ public class LogisticatorItem extends RetrieverItem implements ILogisticator {
 	public static class LD_NETWORK_ID {
 
 		public final static byte ROLE = 70;
+		public final static byte PLAYERTAB = 71;
 
 	}
 

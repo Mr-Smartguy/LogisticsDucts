@@ -27,6 +27,7 @@ public class LDRoleRegistry {
 	public static void registerRoles()
 	{
 		registerRole(RoleAcceptor::new);
+		registerRole(RoleCrafter::new);
 		registerRole(RoleExtractor::new);
 		registerRole(RoleProvider::new);
 	}

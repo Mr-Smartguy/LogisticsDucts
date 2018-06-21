@@ -53,9 +53,12 @@ public class GuiLogisticator extends GuiDuctConnection {
 	private static final int ROLE_BUTTON_DISTANCE = 2;
 	
 	private LogisticsRole prevRole;
+	
+	private String playerName;
 
 	public GuiLogisticator(InventoryPlayer inventory, LogisticatorItem conBase) {
 		super(inventory, conBase);
+		playerName = inventory.player.getName();
 		this.logisticator = conBase;
 		// Overwrite the container to ensure that rendering uses the Logisticator container
 		this.inventorySlots = new ContainerLogisticator(inventory, conBase, 0);
@@ -148,6 +151,8 @@ public class GuiLogisticator extends GuiDuctConnection {
 		container.setActiveRoleIndex(container.getActiveRoleIndex());
 		
 		logisticator.setActiveRole(container.getActiveRoleIndex());
+		
+		logisticator.sendPlayerGuiTabPacket(playerName, container.getActiveRoleIndex());
 		
 		updateButtonEnabledStates();
 	}
