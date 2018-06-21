@@ -16,5 +16,6 @@ item.logisticsducts.logisticator.role.6=Role 6:
 
 item.logisticsducts.logisticator.role.none=None
 item.logisticsducts.logisticator.role.acceptor=Acceptor
+item.logisticsducts.logisticator.role.crafter=Crafter
 item.logisticsducts.logisticator.role.extractor=Extractor
 item.logisticsducts.logisticator.role.provider=Provider
