@@ -82,5 +82,11 @@ public class RoleAcceptor extends LogisticsRole {
 		// Acceptors do not craft items.
 		return null;
 	}
+	
+	@Override
+	public void updateCaches(LogisticatorItem logisticator, FilterLogic filter)
+	{
+		// Acceptors have nothing to cache.
+	}
 
 }

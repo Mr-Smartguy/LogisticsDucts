@@ -72,4 +72,9 @@ public class RoleRequester extends LogisticsRole {
 		return null;
 	}
 
+	@Override
+	public void updateCaches(LogisticatorItem logisticator, FilterLogic filter)
+	{
+		// Requesters have no data to cache.
+	}
 }

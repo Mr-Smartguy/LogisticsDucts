@@ -73,4 +73,11 @@ public abstract class LogisticsRole {
 	 */
 	public abstract List<ItemStack> getCraftedItems(LogisticatorItem logisticator, FilterLogic filter);
 
+	/**
+	 * Callback that gives the role the opportunity to update any cached data.
+	 * @param logisticator TODO
+	 * @param filter TODO
+	 */
+	public abstract void updateCaches(LogisticatorItem logisticator, FilterLogic filter);
+
 }

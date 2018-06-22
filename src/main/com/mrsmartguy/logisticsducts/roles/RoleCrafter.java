@@ -50,5 +50,11 @@ public class RoleCrafter extends LogisticsRole {
 	public List<ItemStack> getCraftedItems(LogisticatorItem logisticator, FilterLogic filter) {
 		return null;
 	}
+	
+	@Override
+	public void updateCaches(LogisticatorItem logisticator, FilterLogic filter)
+	{
+		// TODO crafter caching
+	}
 
 }

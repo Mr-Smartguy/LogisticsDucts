@@ -16,13 +16,14 @@ import net.minecraftforge.items.ItemHandlerHelper;
 public interface ILogisticator {
 	/**
 	 * Sends as many of the requested item to the destination along the given route via the logistics network.
-	 * @param finalDir TODO
+	 * @param network The logistics network.
+	 * @param target The final pipe in the path to send the requested items down.
+	 * @param finalDir The final direction of the path.
 	 * @return The total number of items sent.
 	 */
 	public int requestItems(Map<ILogisticator, Route> network, IGridTileRoute target, byte finalDir, ItemStack items);
 	/**
 	 * Gets a list of all item stacks that can be provided to the logistics network by this logisticator.
-	 * Warning! This method is worst-case O(n^2) with respect to the number of provided item stacks. Use with caution.
 	 * @return The list of all item stacks provided by this logisticator to the network.
 	 */
 	public List<ItemStack> getProvidedItems();

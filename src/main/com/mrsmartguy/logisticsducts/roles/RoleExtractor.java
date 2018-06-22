@@ -109,5 +109,11 @@ public class RoleExtractor extends LogisticsRole {
 		// Extractors do not craft items.
 		return null;
 	}
+	
+	@Override
+	public void updateCaches(LogisticatorItem logisticator, FilterLogic filter)
+	{
+		// Extractors do not have any data to cache.
+	}
 
 }

@@ -1,12 +1,16 @@
 package com.mrsmartguy.logisticsducts.roles;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import com.mrsmartguy.logisticsducts.ducts.attachments.ILogisticator;
 import com.mrsmartguy.logisticsducts.ducts.attachments.LogisticatorItem;
+import com.mrsmartguy.logisticsducts.items.LDItemHelper;
 
 import cofh.thermaldynamics.duct.attachments.filter.FilterLogic;
 import cofh.thermaldynamics.duct.item.DuctUnitItem;
@@ -15,8 +19,14 @@ import cofh.thermaldynamics.multiblock.IGridTileRoute;
 import cofh.thermaldynamics.multiblock.Route;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.items.IItemHandler;
+import scala.actors.threadpool.Arrays;
 
 public class RoleProvider extends LogisticsRole {
+	
+	// Map of item stacks to their slot index in the attached inventory
+	private Map<ItemStack, Integer> itemSlotMap = new LinkedHashMap<ItemStack, Integer>();
+	// Sorted list of item stacks in the attached inventory
+	private List<ItemStack> itemsSorted = new ArrayList<ItemStack>();
 
 	@Override
 	public String getName() {
@@ -37,7 +47,7 @@ public class RoleProvider extends LogisticsRole {
 		
 		// Send up to the desired number of the given item on the route
 		int numSent = 0;
-		
+				
 		// Get the cache attached to the logisticator
 		DuctUnitItem.Cache cache = logisticator.itemDuct.tileCache[logisticator.side];
 		if (cache == null) return 0;
@@ -46,12 +56,10 @@ public class RoleProvider extends LogisticsRole {
 		IItemHandler handler = cache.getItemHandler(logisticator.side ^ 1);
 		if (handler == null) return 0;
 		
-		// Find any stacks that match the filter
-		for (int i = 0; i < handler.getSlots() && numSent < items.getCount(); i++)
+		for (Entry<ItemStack, Integer> entry : itemSlotMap.entrySet())
 		{
-			// Check the contents of this slot
-			ItemStack curStack = handler.getStackInSlot(i);
-			
+			ItemStack curStack = entry.getKey();
+			int i = entry.getValue();
 			if (!curStack.isEmpty() && curStack.getCount() > 0 && filter.matchesFilter(curStack))
 			{
 				if (ItemStack.areItemsEqual(curStack, items) && ItemStack.areItemStackShareTagsEqual(curStack, items))
@@ -76,16 +84,33 @@ public class RoleProvider extends LogisticsRole {
 	}
 
 	@Override
-	public List<ItemStack> getProvidedItems(LogisticatorItem logisticator, FilterLogic filter) {
-		ArrayList<ItemStack> stacks = new ArrayList<ItemStack>();
+	public List<ItemStack> getProvidedItems(LogisticatorItem logisticator, FilterLogic filter) {		
+		return Collections.unmodifiableList(itemsSorted);
+	}
+
+	@Override
+	public List<ItemStack> getCraftedItems(LogisticatorItem logisticator, FilterLogic filter) {
+		// Providers do not craft items.
+		return null;
+	}
+	
+	@Override
+	public void updateCaches(LogisticatorItem logisticator, FilterLogic filter)
+	{
+		// Clear the cached items
+		itemSlotMap.clear();
+		itemsSorted.clear();
+		
+		List<ItemStack> unsorted = new ArrayList<ItemStack>();
+		
 		
 		// Get the cache attached to the logisticator
 		DuctUnitItem.Cache cache = logisticator.itemDuct.tileCache[logisticator.side];
-		if (cache == null) return stacks;
+		if (cache == null) return;
 		
 		// Get the handler for the side of the inventory attached to the duct
 		IItemHandler handler = cache.getItemHandler(logisticator.side ^ 1);
-		if (handler == null) return stacks;
+		if (handler == null) return;
 		
 		// Find any stacks that match the filter
 		for (int i = 0; i < handler.getSlots(); i++)
@@ -94,17 +119,14 @@ public class RoleProvider extends LogisticsRole {
 			ItemStack curStack = handler.getStackInSlot(i);
 			// Check if the stack is empty, nonzero size and passes the associated filter
 			if (!curStack.isEmpty() && curStack.getCount() > 0 && filter.matchesFilter(curStack)) {
-				stacks.add(curStack);
+				itemSlotMap.put(curStack, i);
+				unsorted.add(curStack);
 			}
 		}
 		
-		return stacks;
-	}
-
-	@Override
-	public List<ItemStack> getCraftedItems(LogisticatorItem logisticator, FilterLogic filter) {
-		// Providers do not craft items.
-		return null;
+		// Sort items and replace sorted list with new list
+		unsorted.sort(LDItemHelper.itemComparator);
+		itemsSorted = unsorted;
 	}
 
 }

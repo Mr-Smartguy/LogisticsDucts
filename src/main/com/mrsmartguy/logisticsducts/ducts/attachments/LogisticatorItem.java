@@ -1,6 +1,7 @@
 package com.mrsmartguy.logisticsducts.ducts.attachments;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -317,6 +318,27 @@ public class LogisticatorItem extends RetrieverItem implements ILogisticator {
 	}
 	
 	@Override
+	public void tick(int pass)
+	{
+		// Update caches of roles before roles are run
+		if (pass == 1)
+		{
+			if (roles != null)
+			{
+				for (int roleIndex = 0; roleIndex < roles.length; roleIndex++)
+				{
+					LogisticsRole role = roles[roleIndex];
+					if (role != null)
+					{
+						role.updateCaches(this, filters[roleIndex]);
+					}
+				}
+			}
+		}
+		super.tick(pass);
+	}
+	
+	@Override
 	public void handleItemSending() {
 
 		handlePendingItems();
@@ -525,11 +547,6 @@ public class LogisticatorItem extends RetrieverItem implements ILogisticator {
 		return sent;
 	}
 	
-	/**
-	 * Gets a list of all item stacks that can be provided to the logistics network by this logisticator.
-	 * Warning! This method is worst-case O(n^2) with respect to the number of provided item stacks. Use with caution.
-	 * @return The list of all item stacks provided by this logisticator to the network.
-	 */
 	@Override
 	public List<ItemStack> getProvidedItems()
 	{
@@ -542,7 +559,7 @@ public class LogisticatorItem extends RetrieverItem implements ILogisticator {
 				FilterLogic filter = filters[roleIndex];
 				if (role != null)
 				{
-					List<ItemStack> newStacks = role.getProvidedItems(this, filter);
+					Collection<ItemStack> newStacks = role.getProvidedItems(this, filter);
 					if (newStacks != null)
 					{
 						for (ItemStack curStack : newStacks)
