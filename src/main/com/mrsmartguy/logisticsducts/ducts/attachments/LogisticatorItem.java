@@ -320,6 +320,7 @@ public class LogisticatorItem extends RetrieverItem implements ILogisticator {
 	@Override
 	public void tick(int pass)
 	{
+		super.tick(pass);
 		// Update caches of roles before roles are run
 		if (pass == 1)
 		{
@@ -335,7 +336,6 @@ public class LogisticatorItem extends RetrieverItem implements ILogisticator {
 				}
 			}
 		}
-		super.tick(pass);
 	}
 	
 	@Override
@@ -535,13 +535,16 @@ public class LogisticatorItem extends RetrieverItem implements ILogisticator {
 			for (int roleIndex = 0; roleIndex < roles.length; roleIndex++)
 			{
 				LogisticsRole role = roles[roleIndex];
-				FilterLogic filter = filters[roleIndex];
-				int curSent = role.requestItems(this, filter, target, finalDir, items);
-				sent += curSent;
-				if (items.getCount() > curSent)
-					items.shrink(curSent);
-				else
-					break;
+				if (role != null)
+				{
+					FilterLogic filter = filters[roleIndex];
+					int curSent = role.requestItems(this, filter, target, finalDir, items);
+					sent += curSent;
+					if (items.getCount() > curSent)
+						items.shrink(curSent);
+					else
+						break;
+				}
 			}
 		}
 		return sent;
@@ -625,14 +628,14 @@ public class LogisticatorItem extends RetrieverItem implements ILogisticator {
 	@Override
 	public void handleStuffedItems() {
 
+		FilterLogic curFilter = filter;
+		
+		
 		for (Iterator<ItemStack> iterator = stuffedItems.iterator(); iterator.hasNext(); ) {
 			ItemStack stuffedItem = iterator.next();
-			for (FilterLogic curFilter : filters)
+			int accepted = acceptsItems(stuffedItem);
+			if (accepted > 0)
 			{
-				if (curFilter == null || !curFilter.matchesFilter(stuffedItem)) {
-					continue;
-				}
-
 				stuffedItem.setCount(itemDuct.insertIntoInventory(stuffedItem, side));
 				if (stuffedItem.getCount() <= 0) {
 					iterator.remove();
@@ -640,7 +643,14 @@ public class LogisticatorItem extends RetrieverItem implements ILogisticator {
 				}
 			}
 		}
+
+		// Create temporary filter to ensure superclasses don't accept any stuffed items
+		filter = createFilterLogic();
+		// Set filter to whitelist
+		filter.setFlag(0, false);
 		super.handleStuffedItems();
+		// Restore old filter
+		filter = curFilter;
 	}
 	
 	

@@ -6,6 +6,7 @@ import java.util.List;
 
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NBTTagCompound;
 
 public class LDItemHelper {
 	
@@ -133,7 +134,7 @@ public class LDItemHelper {
 		public int compare(ItemStack o1, ItemStack o2) {
 			
 			// Compare names and metadata
-			int nameAndMetaCompare = compareNoMetaNoNBT(o1, o2);
+			int nameAndMetaCompare = compareNoNBT(o1, o2);
 			if (nameAndMetaCompare != 0)
 			{
 				return nameAndMetaCompare;
@@ -145,7 +146,18 @@ public class LDItemHelper {
 			}
 			
 			// Compare tags
-			return o1.getTagCompound().hashCode() - o2.getTagCompound().hashCode();
+			NBTTagCompound tag1 = o1.getTagCompound();
+			NBTTagCompound tag2 = o2.getTagCompound();
+			
+			if (tag1 == null)
+				if (tag2 == null)
+					return 0;
+				else
+					return Integer.MIN_VALUE;
+			else if (tag2 == null)
+				return Integer.MAX_VALUE;
+			else
+				return o1.getTagCompound().hashCode() - o2.getTagCompound().hashCode();
 		}
 
 		/**

@@ -56,24 +56,43 @@ public class RoleProvider extends LogisticsRole {
 		IItemHandler handler = cache.getItemHandler(logisticator.side ^ 1);
 		if (handler == null) return 0;
 		
+		List<ItemStack> toRemove = new ArrayList<ItemStack>();
+		
 		for (Entry<ItemStack, Integer> entry : itemSlotMap.entrySet())
 		{
 			ItemStack curStack = entry.getKey();
 			int i = entry.getValue();
-			if (!curStack.isEmpty() && curStack.getCount() > 0 && filter.matchesFilter(curStack))
+			int toPull = Math.min(Math.min(handler.getStackInSlot(i).getCount(), items.getCount() - numSent), filter.getLevel(FilterLogic.levelStackSize));
+			ItemStack simulated = handler.extractItem(i, toPull, true);
+			if (LDItemHelper.itemComparator.compare(simulated, items) == 0)
 			{
-				if (ItemStack.areItemsEqual(curStack, items) && ItemStack.areItemStackShareTagsEqual(curStack, items))
+				ItemStack stackPulled = handler.extractItem(i, simulated.getCount(), false);
+				// Update cache
+				if (stackPulled.getCount() >= curStack.getCount())
 				{
-					ItemStack stackPulled = handler.extractItem(i, items.getCount(), false);
-					Route route = logisticator.itemDuct.getRoute(target).copy();
-					route.pathDirections.add(finalDir);
-					TravelingItem traveling = new TravelingItem(stackPulled, logisticator.itemDuct, route, (byte) (logisticator.side ^ 1), logisticator.getSpeed());
-					logisticator.itemDuct.insertNewItem(traveling);
-					numSent += stackPulled.getCount();
-					
+					toRemove.add(curStack);
 				}
+				else
+				{
+					curStack.shrink(stackPulled.getCount());
+				}
+				Route route = logisticator.itemDuct.getRoute(target).copy();
+				route.pathDirections.add(finalDir);
+				
+				TravelingItem traveling = new TravelingItem(stackPulled, logisticator.itemDuct, route, (byte) (logisticator.side ^ 1), logisticator.getSpeed());
+				logisticator.itemDuct.insertNewItem(traveling);
+				numSent += stackPulled.getCount();
+				if (numSent > 0)
+					break;		
 			}
 		}
+		
+		for (ItemStack curRemoval : toRemove)
+		{
+			itemSlotMap.remove(curRemoval);
+			itemsSorted.remove(curRemoval);
+		}
+		
 		return numSent;
 	}
 
@@ -116,7 +135,7 @@ public class RoleProvider extends LogisticsRole {
 		for (int i = 0; i < handler.getSlots(); i++)
 		{
 			// Check the contents of this slot
-			ItemStack curStack = handler.getStackInSlot(i);
+			ItemStack curStack = handler.getStackInSlot(i).copy();
 			// Check if the stack is empty, nonzero size and passes the associated filter
 			if (!curStack.isEmpty() && curStack.getCount() > 0 && filter.matchesFilter(curStack)) {
 				itemSlotMap.put(curStack, i);
