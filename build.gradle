@@ -106,7 +106,7 @@ processResources {
 }
 
 def pullVersion() {
-    def file = file("src/main/com/mrsmartguy/logisticsducts/LogisticsDucts.java")
+    def file = file("src/main/java/com/mrsmartguy/logisticsducts/LogisticsDucts.java")
     def version = ""
     def pattern = Pattern.compile("^\tpublic static final String MODVERSION = \"([\\d\\.]*)\";\$")
     file.eachLine { String s ->
