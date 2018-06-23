@@ -1,5 +1,8 @@
 package com.mrsmartguy.logisticsducts.items;
 
+import static cofh.core.util.helpers.RecipeHelper.addShapedRecipe;
+import static cofh.core.util.helpers.RecipeHelper.addShapelessRecipe;
+
 import com.mrsmartguy.logisticsducts.ducts.attachments.LogisticatorItem;
 
 import cofh.thermaldynamics.ThermalDynamics;
@@ -9,8 +12,12 @@ import cofh.thermaldynamics.duct.attachments.retriever.RetrieverItem;
 import cofh.thermaldynamics.duct.tiles.DuctToken;
 import cofh.thermaldynamics.duct.tiles.TileGrid;
 import cofh.thermaldynamics.item.ItemAttachment;
+import cofh.thermaldynamics.item.ItemFilter;
+import cofh.thermaldynamics.item.ItemServo;
+import cofh.thermalfoundation.item.ItemMaterial;
 import net.minecraft.client.renderer.block.model.ModelResourceLocation;
 import net.minecraft.creativetab.CreativeTabs;
+import net.minecraft.init.Items;
 import net.minecraft.item.EnumRarity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.EnumFacing;
@@ -79,6 +86,73 @@ public class ItemLogisticator extends ItemAttachment {
 		logisticatorSignalum = new ItemStack(this, 1, 3);
 		logisticatorResonant = new ItemStack(this, 1, 4);
 
+		return true;
+	}
+	
+	@Override
+	public boolean initialize() {
+		
+		addShapedRecipe(logisticatorBasic,
+				"FGS",
+				"IRI",
+				'F', ItemFilter.filterBasic,
+				'I', "ingotIron",
+				'S', ItemServo.servoBasic,
+				'G', "blockGlass",
+				'R', ItemMaterial.redstoneServo
+		);
+
+		addShapedRecipe(logisticatorHardened,
+				"FGS",
+				"IRI",
+				'F', ItemFilter.filterHardened,
+				'I', "ingotIron",
+				'S', ItemServo.servoHardened,
+				'G', "blockGlass",
+				'R', ItemMaterial.redstoneServo
+		);
+		addShapelessRecipe(logisticatorHardened, logisticatorBasic, "ingotInvar", "ingotInvar");
+
+		addShapedRecipe(logisticatorReinforced,
+				"FGS",
+				"IRI",
+				'F', ItemFilter.filterReinforced,
+				'I', "ingotIron",
+				'S', ItemServo.servoReinforced,
+				'G', "blockGlass",
+				'R', ItemMaterial.redstoneServo
+		);
+		addShapelessRecipe(logisticatorReinforced, logisticatorBasic, "ingotElectrum", "ingotElectrum");
+		addShapelessRecipe(logisticatorReinforced, logisticatorHardened, "ingotElectrum", "ingotElectrum");
+
+		addShapedRecipe(logisticatorSignalum,
+				"FGS",
+				"IRI",
+				'F', ItemFilter.filterSignalum,
+				'I', "ingotIron",
+				'S', ItemServo.servoSignalum,
+				'G', "blockGlass",
+				'R', ItemMaterial.redstoneServo
+		);
+		addShapelessRecipe(logisticatorSignalum, logisticatorBasic, "ingotSignalum", "ingotSignalum");
+		addShapelessRecipe(logisticatorSignalum, logisticatorHardened, "ingotSignalum", "ingotSignalum");
+		addShapelessRecipe(logisticatorSignalum, logisticatorReinforced, "ingotSignalum", "ingotSignalum");
+
+		addShapedRecipe(logisticatorResonant,
+				"FGS",
+				"IRI",
+				'F', ItemFilter.filterResonant,
+				'I', "ingotIron",
+				'S', ItemServo.servoResonant,
+				'G', "blockGlass",
+				'R', ItemMaterial.redstoneServo
+		);
+		addShapelessRecipe(logisticatorResonant, logisticatorBasic, "ingotEnderium", "ingotEnderium");
+		addShapelessRecipe(logisticatorResonant, logisticatorHardened, "ingotEnderium", "ingotEnderium");
+		addShapelessRecipe(logisticatorResonant, logisticatorReinforced, "ingotEnderium", "ingotEnderium");
+		addShapelessRecipe(logisticatorResonant, logisticatorSignalum, "ingotEnderium", "ingotEnderium");
+		
+		
 		return true;
 	}
 
