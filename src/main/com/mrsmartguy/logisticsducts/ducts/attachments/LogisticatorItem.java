@@ -9,10 +9,12 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.StreamSupport;
 
 import com.mrsmartguy.logisticsducts.LogisticsDucts;
 import com.mrsmartguy.logisticsducts.gui.GuiLogisticator;
 import com.mrsmartguy.logisticsducts.gui.container.ContainerLogisticator;
+import com.mrsmartguy.logisticsducts.items.LDItemHelper;
 import com.mrsmartguy.logisticsducts.items.LDItems;
 import com.mrsmartguy.logisticsducts.network.LogisticsNetwork;
 import com.mrsmartguy.logisticsducts.roles.RoleAcceptor;
@@ -40,6 +42,7 @@ import cofh.thermaldynamics.duct.attachments.filter.FilterLogic;
 import cofh.thermaldynamics.duct.attachments.filter.IFilterItems;
 import cofh.thermaldynamics.duct.attachments.retriever.RetrieverItem;
 import cofh.thermaldynamics.duct.item.DuctUnitItem;
+import cofh.thermaldynamics.duct.item.StackMap;
 import cofh.thermaldynamics.duct.item.TravelingItem;
 import cofh.thermaldynamics.duct.tiles.TileGrid;
 import cofh.thermaldynamics.gui.client.GuiDuctConnection;
@@ -57,6 +60,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.util.BlockRenderLayer;
+import net.minecraft.util.EnumFacing;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.IBlockAccess;
@@ -80,6 +84,8 @@ public class LogisticatorItem extends RetrieverItem implements ILogisticator {
 	
 	// Keep track of role being edited
 	private int activeRole = -1;
+	
+	private List<ItemStack> sortedTraveling = new ArrayList<ItemStack>();
 			
 	public LogisticatorItem(TileGrid tile, byte side) {
 		super(tile, side);
@@ -317,6 +323,17 @@ public class LogisticatorItem extends RetrieverItem implements ILogisticator {
 		}
 	}
 	
+	private void updateTravelingCache()
+	{
+		sortedTraveling.clear();
+		StackMap stackMap = itemDuct.getGrid().travelingItems.get(itemDuct.pos().offset(EnumFacing.VALUES[side]));
+		if (stackMap != null)
+		{
+			stackMap.getItems().forEach(stack -> sortedTraveling.add(stack));	
+		}
+		sortedTraveling.sort(LDItemHelper.itemComparator);
+	}
+	
 	@Override
 	public void tick(int pass)
 	{
@@ -324,6 +341,7 @@ public class LogisticatorItem extends RetrieverItem implements ILogisticator {
 		// Update caches of roles before roles are run
 		if (pass == 1)
 		{
+			updateTravelingCache();
 			if (roles != null)
 			{
 				for (int roleIndex = 0; roleIndex < roles.length; roleIndex++)
@@ -614,6 +632,11 @@ public class LogisticatorItem extends RetrieverItem implements ILogisticator {
 			}
 		}
 		return numAccepted;
+	}
+	
+	public List<ItemStack> getTravelingItemsSorted()
+	{
+		return Collections.unmodifiableList(sortedTraveling);
 	}
 
 	/**

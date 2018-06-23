@@ -2,7 +2,9 @@ package com.mrsmartguy.logisticsducts.items;
 
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -15,36 +17,51 @@ public class LDItemHelper {
 	/**
 	 * Finds the items that exist in both sorted lists (ignores stack size).
 	 * To reiterate, both lists MUST BE sorted for this to work correctly!
-	 * @return The list of items common to both lists based on the given parameters (ItemStacks are picked from source)
+	 * @param source The list of items from which ones in target will be matched to (e.g. the filter)
+	 * @param target The list of items to match with those in source (e.g. the inventory)
+	 * @return A mapping of items in source to those that match from target based on the given options (e.g. filter stacks to a list of matching inventory stacks)
 	 */
-	public static List<ItemStack> findElementsInSorted(List<ItemStack> source, List<ItemStack> filter, boolean ignoreMeta, boolean ignoreNBT)
+	public static Map<ItemStack, List<ItemStack>> findElementsInSorted(List<ItemStack> source, List<ItemStack> target, boolean ignoreMeta, boolean ignoreNBT)
 	{
 		// Current indices of the two lists 
-		int sourceIndex = 0, filterIndex = 0;
+		int sourceIndex = 0, targetIndex = 0;
 		
-		ArrayList<ItemStack> intersection = new ArrayList<ItemStack>();
+		LinkedHashMap<ItemStack, List<ItemStack>> intersection = new LinkedHashMap<ItemStack, List<ItemStack>>();
 		
 		// Iterate over sorted arrays in order of their elements comparison results
 		// Because the arrays are both sorted, this can be done in one pass
-		while (sourceIndex < source.size() && filterIndex < filter.size())
+		while (sourceIndex < source.size() && targetIndex < target.size())
 		{
 			ItemStack sourceStack = source.get(sourceIndex);
-			ItemStack filterStack = filter.get(filterIndex);
+			ItemStack targetStack = target.get(targetIndex);
 			
-			int compareVal = itemComparator.compareWithFlags(sourceStack, filterStack, ignoreMeta, ignoreNBT);
+			int compareVal = itemComparator.compareWithFlags(sourceStack, targetStack, ignoreMeta, ignoreNBT);
+			
+			// Get list corresponding to the source stack, creating it if it doesn't exist (and if source stack isnt empty)
+			List<ItemStack> curEntry = intersection.get(sourceStack);
+			
+			if (!sourceStack.isEmpty() && curEntry == null)
+			{
+				curEntry = new ArrayList<ItemStack>();
+				intersection.put(sourceStack, curEntry);
+			}
 			
 			if (compareVal == 0)
 			{
-				intersection.add(sourceStack);
-				// Check next stack in filter for equality so that we don't miss duplicate stacks in filter
-				if (itemComparator.compareWithFlags(sourceStack, filter.get(filterIndex + 1), ignoreMeta, ignoreNBT) == 0)
-					filterIndex++;
+				if (!sourceStack.isEmpty())
+				{
+					curEntry.add(targetStack);
+				}
+				// Check next stack in target for equality so that we don't miss duplicate stacks in target
+				if (targetIndex < target.size() - 1 &&
+						itemComparator.compareWithFlags(sourceStack, target.get(targetIndex + 1), ignoreMeta, ignoreNBT) == 0)
+					targetIndex++;
 				else
 					sourceIndex++;
 			}
 			else if (compareVal > 0)
 			{
-				filterIndex++;
+				targetIndex++;
 			}
 			else
 			{
@@ -79,7 +96,7 @@ public class LDItemHelper {
 			else if (o2 == null || o2.isEmpty())
 			{
 				// o1 is not null and o2 is null, o1 is "greater than" o2
-				return Integer.MIN_VALUE;
+				return Integer.MAX_VALUE;
 			}
 			
 			return o1.getItem().getUnlocalizedName().compareTo(o2.getItem().getUnlocalizedName());
