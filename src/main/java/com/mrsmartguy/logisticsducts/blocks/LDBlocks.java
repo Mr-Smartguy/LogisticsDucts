@@ -8,14 +8,10 @@ import net.minecraftforge.fml.relauncher.SideOnly;
 
 public class LDBlocks {
 	
-	@ObjectHolder("logisticsducts:testblock")
-	public static TestBlock testBlock;
-	
 	public static void preInit() { }	
 
 	@SideOnly(Side.CLIENT)
 	public static void initModels()
 	{
-		testBlock.initModel();
 	}
 }

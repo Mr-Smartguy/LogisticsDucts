@@ -1,6 +1,5 @@
 package com.mrsmartguy.logisticsducts.items;
 
-import com.mrsmartguy.logisticsducts.blocks.TestBlock;
 import com.mrsmartguy.logisticsducts.ducts.attachments.LogisticatorItem;
 
 import cofh.core.util.core.IInitializer;
