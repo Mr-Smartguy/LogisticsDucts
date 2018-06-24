@@ -93,8 +93,8 @@ public class ItemLogisticator extends ItemAttachment {
 	public boolean initialize() {
 		
 		addShapedRecipe(logisticatorBasic,
-				"FGS",
-				"IRI",
+				"IGI",
+				"FRS",
 				'F', ItemFilter.filterBasic,
 				'I', "ingotIron",
 				'S', ItemServo.servoBasic,
@@ -103,8 +103,8 @@ public class ItemLogisticator extends ItemAttachment {
 		);
 
 		addShapedRecipe(logisticatorHardened,
-				"FGS",
-				"IRI",
+				"IGI",
+				"FRS",
 				'F', ItemFilter.filterHardened,
 				'I', "ingotIron",
 				'S', ItemServo.servoHardened,
@@ -114,8 +114,8 @@ public class ItemLogisticator extends ItemAttachment {
 		addShapelessRecipe(logisticatorHardened, logisticatorBasic, "ingotInvar", "ingotInvar");
 
 		addShapedRecipe(logisticatorReinforced,
-				"FGS",
-				"IRI",
+				"IGI",
+				"FRS",
 				'F', ItemFilter.filterReinforced,
 				'I', "ingotIron",
 				'S', ItemServo.servoReinforced,
@@ -126,8 +126,8 @@ public class ItemLogisticator extends ItemAttachment {
 		addShapelessRecipe(logisticatorReinforced, logisticatorHardened, "ingotElectrum", "ingotElectrum");
 
 		addShapedRecipe(logisticatorSignalum,
-				"FGS",
-				"IRI",
+				"IGI",
+				"FRS",
 				'F', ItemFilter.filterSignalum,
 				'I', "ingotIron",
 				'S', ItemServo.servoSignalum,
@@ -139,8 +139,8 @@ public class ItemLogisticator extends ItemAttachment {
 		addShapelessRecipe(logisticatorSignalum, logisticatorReinforced, "ingotSignalum", "ingotSignalum");
 
 		addShapedRecipe(logisticatorResonant,
-				"FGS",
-				"IRI",
+				"IGI",
+				"FRS",
 				'F', ItemFilter.filterResonant,
 				'I', "ingotIron",
 				'S', ItemServo.servoResonant,
