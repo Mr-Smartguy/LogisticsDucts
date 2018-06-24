@@ -6,6 +6,7 @@ import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Set;
 
+import com.mrsmartguy.logisticsducts.ducts.attachments.FilterLogicConstants;
 import com.mrsmartguy.logisticsducts.ducts.attachments.LogisticatorItem;
 import com.mrsmartguy.logisticsducts.gui.container.ContainerLogisticator;
 import com.mrsmartguy.logisticsducts.roles.LDRoleRegistry;
@@ -123,10 +124,16 @@ public class GuiLogisticator extends GuiDuctConnection {
 		{
 			setElementVisible(element, enabled);
 		}
+		
 		for (ElementButton element : flagButtons)
 		{
 			setElementVisible(element, enabled);
 		}
+		
+		// Set whether blacklist button is active or not based on current role
+		if (enabled)
+			setElementVisible(flagButtons[FilterLogicConstants.flagBlackList],
+					logisticator.getRole(container.getActiveRoleIndex()).guiHasBlacklistButton());
 
 		setElementVisible(decStackSize, enabled);
 		setElementVisible(incStackSize, enabled);

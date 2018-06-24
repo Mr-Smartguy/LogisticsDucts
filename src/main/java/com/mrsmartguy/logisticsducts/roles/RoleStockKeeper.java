@@ -25,6 +25,10 @@ public class RoleStockKeeper extends LogisticsRole {
 	public String getName() {
 		return "stockkeeper";
 	}
+	
+	// Stock keepers do not use the blacklist feature
+	@Override
+	public boolean guiHasBlacklistButton() { return false; }
 
 	@Override
 	public void performRole(LogisticatorItem logisticator, FilterLogic filter, Map<ILogisticator, Route> network) {
@@ -106,7 +110,7 @@ public class RoleStockKeeper extends LogisticsRole {
 					
 					if (opt.isPresent())
 					{
-						target.requestItems(network, logisticator.itemDuct, logisticator.side, curRequestWithSize);
+						target.requestItems(network, logisticator.itemDuct, logisticator.side, curRequestWithSize, ignoreMeta, ignoreNBT);
 						return;
 					}
 				}
@@ -115,7 +119,7 @@ public class RoleStockKeeper extends LogisticsRole {
 	}
 
 	@Override
-	public int requestItems(LogisticatorItem logisticator, FilterLogic filter, IGridTileRoute target, byte finalDir, ItemStack items) {
+	public int requestItems(LogisticatorItem logisticator, FilterLogic filter, IGridTileRoute target, byte finalDir, ItemStack items, boolean ignoreMeta, boolean ignoreNBT) {
 		// Requesters do not provide any items.
 		return 0;
 	}

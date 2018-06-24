@@ -543,7 +543,7 @@ public class LogisticatorItem extends RetrieverItem implements ILogisticator {
 	 * @return The total number of items sent.
 	 */
 	@Override
-	public int requestItems(Map<ILogisticator, Route> network, IGridTileRoute target, byte finalDir, ItemStack items)
+	public int requestItems(Map<ILogisticator, Route> network, IGridTileRoute target, byte finalDir, ItemStack items, boolean ignoreMeta, boolean ignoreNBT)
 	{
 		// Copy items to prevent modifying the original stack, in case the caller didn't do this already
 		items = items.copy();
@@ -556,7 +556,8 @@ public class LogisticatorItem extends RetrieverItem implements ILogisticator {
 				if (role != null)
 				{
 					FilterLogic filter = filters[roleIndex];
-					int curSent = role.requestItems(this, filter, target, finalDir, items);
+					
+					int curSent = role.requestItems(this, filter, target, finalDir, items, ignoreMeta, ignoreNBT);
 					sent += curSent;
 					if (items.getCount() > curSent)
 						items.shrink(curSent);

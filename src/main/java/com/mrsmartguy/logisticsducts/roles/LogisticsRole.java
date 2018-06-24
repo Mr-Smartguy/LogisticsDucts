@@ -30,6 +30,12 @@ public abstract class LogisticsRole {
 	public boolean filterHasStackSize() { return true; }
 	
 	/**
+	 * Returns whether the filter for this role should have a button to change between black or whitelist.
+	 * @return Whether the filter for this role should have a button to change between black or whitelist
+	 */
+	public boolean guiHasBlacklistButton() { return true; }
+	
+	/**
 	 * Performs the function of this role (e.g. keep stock, request).
 	 * @param logisticator The logisticator that possesses this role.
 	 * @param filter The filter that corresponds to this role in the logisticator.
@@ -46,7 +52,7 @@ public abstract class LogisticsRole {
 	 * @param items The requested items.
 	 * @return The total number of items sent.
 	 */
-	public abstract int requestItems(LogisticatorItem logisticator, FilterLogic filter, IGridTileRoute target, byte finalDir, ItemStack items);
+	public abstract int requestItems(LogisticatorItem logisticator, FilterLogic filter, IGridTileRoute target, byte finalDir, ItemStack items, boolean ignoreMeta, boolean ignoreNBT);
 	
 	/**
 	 * Determines how much of a given stack can be accepted by this role.

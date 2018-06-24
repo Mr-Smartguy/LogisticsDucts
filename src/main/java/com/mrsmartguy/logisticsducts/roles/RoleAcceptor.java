@@ -30,7 +30,7 @@ public class RoleAcceptor extends LogisticsRole {
 	}
 
 	@Override
-	public int requestItems(LogisticatorItem logisticator, FilterLogic filter, IGridTileRoute target, byte finalDir, ItemStack items) {
+	public int requestItems(LogisticatorItem logisticator, FilterLogic filter, IGridTileRoute target, byte finalDir, ItemStack items, boolean ignoreMeta, boolean ignoreNBT) {
 		// Acceptors do not provide items.
 		return 0;
 	}

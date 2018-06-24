@@ -5,8 +5,10 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
 
+import com.mrsmartguy.logisticsducts.ducts.attachments.FilterLogicConstants;
 import com.mrsmartguy.logisticsducts.ducts.attachments.ILogisticator;
 import com.mrsmartguy.logisticsducts.ducts.attachments.LogisticatorItem;
+import com.mrsmartguy.logisticsducts.items.LDItemHelper;
 
 import cofh.thermaldynamics.duct.attachments.filter.FilterLogic;
 import cofh.thermaldynamics.multiblock.IGridTileRoute;
@@ -23,9 +25,17 @@ public class RoleRequester extends LogisticsRole {
 	// Requesters should only have single item stacks in the filter (the requested items)
 	@Override
 	public boolean filterHasStackSize() { return false; }
+	
+	// Requesters do not use the blacklist feature
+	@Override
+	public boolean guiHasBlacklistButton() { return false; }
 
 	@Override
 	public void performRole(LogisticatorItem logisticator, FilterLogic filter, Map<ILogisticator, Route> network) {
+		
+		boolean ignoreMeta = filter.getFlag(FilterLogicConstants.flagIgnoreMetadata);
+		boolean ignoreNBT = filter.getFlag(FilterLogicConstants.flagIgnoreNBT);
+		
 		// Request items from any logisticators on the network
 		for (Entry<ILogisticator, Route> entry : network.entrySet())
 		{
@@ -37,11 +47,14 @@ public class RoleRequester extends LogisticsRole {
 			{
 				final ItemStack curRequestWithSize = curRequest.copy();
 				curRequestWithSize.setCount(filter.getLevel(FilterLogic.levelStackSize));
-				Optional<ItemStack> opt = provided.stream().filter(stack -> ItemStack.areItemsEqual(stack, curRequestWithSize)).findFirst();
+				Optional<ItemStack> opt = provided
+						.stream()
+						.filter(stack -> LDItemHelper.itemComparator.compareWithFlags(stack, curRequestWithSize, ignoreMeta, ignoreNBT) == 0)
+						.findFirst();
 				
 				if (opt.isPresent())
 				{
-					target.requestItems(network, logisticator.itemDuct, logisticator.side, curRequestWithSize);
+					target.requestItems(network, logisticator.itemDuct, logisticator.side, curRequestWithSize, ignoreMeta, ignoreNBT);
 					return;
 				}
 			}
@@ -49,7 +62,7 @@ public class RoleRequester extends LogisticsRole {
 	}
 
 	@Override
-	public int requestItems(LogisticatorItem logisticator, FilterLogic filter, IGridTileRoute target, byte finalDir, ItemStack items) {
+	public int requestItems(LogisticatorItem logisticator, FilterLogic filter, IGridTileRoute target, byte finalDir, ItemStack items, boolean ignoreMeta, boolean ignoreNBT) {
 		// Requesters do not provide any items.
 		return 0;
 	}

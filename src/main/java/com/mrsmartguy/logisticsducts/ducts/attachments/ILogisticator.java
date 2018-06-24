@@ -21,7 +21,7 @@ public interface ILogisticator {
 	 * @param finalDir The final direction of the path.
 	 * @return The total number of items sent.
 	 */
-	public int requestItems(Map<ILogisticator, Route> network, IGridTileRoute target, byte finalDir, ItemStack items);
+	public int requestItems(Map<ILogisticator, Route> network, IGridTileRoute target, byte finalDir, ItemStack items, boolean ignoreMeta, boolean ignoreNBT);
 	/**
 	 * Gets a list of all item stacks that can be provided to the logistics network by this logisticator.
 	 * @return The list of all item stacks provided by this logisticator to the network.

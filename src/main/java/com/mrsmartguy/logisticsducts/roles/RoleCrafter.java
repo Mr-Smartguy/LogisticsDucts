@@ -21,6 +21,10 @@ public class RoleCrafter extends LogisticsRole {
 	// Crafters should only have single item stacks in the filter (recipes)
 	@Override
 	public boolean filterHasStackSize() { return false; }
+	
+	// Crafters do not use the blacklist feature
+	@Override
+	public boolean guiHasBlacklistButton() { return false; }
 
 	@Override
 	public void performRole(LogisticatorItem logisticator, FilterLogic filter, Map<ILogisticator, Route> network) {
@@ -29,7 +33,7 @@ public class RoleCrafter extends LogisticsRole {
 	}
 
 	@Override
-	public int requestItems(LogisticatorItem logisticator, FilterLogic filter, IGridTileRoute target, byte finalDir, ItemStack items) {
+	public int requestItems(LogisticatorItem logisticator, FilterLogic filter, IGridTileRoute target, byte finalDir, ItemStack items, boolean ignoreMeta, boolean ignoreNBT) {
 		// TODO Auto-generated method stub
 		return 0;
 	}

@@ -43,7 +43,7 @@ public class RoleProvider extends LogisticsRole {
 	}
 
 	@Override
-	public int requestItems(LogisticatorItem logisticator, FilterLogic filter, IGridTileRoute target, byte finalDir, ItemStack items) {
+	public int requestItems(LogisticatorItem logisticator, FilterLogic filter, IGridTileRoute target, byte finalDir, ItemStack items, boolean ignoreMeta, boolean ignoreNBT) {
 		
 		// Send up to the desired number of the given item on the route
 		int numSent = 0;
@@ -64,7 +64,7 @@ public class RoleProvider extends LogisticsRole {
 			int i = entry.getValue();
 			int toPull = Math.min(Math.min(handler.getStackInSlot(i).getCount(), items.getCount() - numSent), filter.getLevel(FilterLogic.levelStackSize));
 			ItemStack simulated = handler.extractItem(i, toPull, true);
-			if (LDItemHelper.itemComparator.compare(simulated, items) == 0)
+			if (LDItemHelper.itemComparator.compareWithFlags(simulated, items, ignoreMeta, ignoreNBT) == 0)
 			{
 				ItemStack stackPulled = handler.extractItem(i, simulated.getCount(), false);
 				// Update cache
