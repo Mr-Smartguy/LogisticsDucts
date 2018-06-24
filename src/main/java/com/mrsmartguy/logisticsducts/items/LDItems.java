@@ -24,13 +24,10 @@ public class LDItems {
 	
 	@ObjectHolder("logisticsducts:itemlogisticator")
 	public static ItemLogisticator itemLogisticator;
-	//@ObjectHolder("logisticsducts:itemlogisticspacket")
-	public static ItemLogisticsPacket itemLogisticsPacket;
 	
 	public static void preInit() {
 
 		itemLogisticator = new ItemLogisticator();
-		itemLogisticsPacket = new ItemLogisticsPacket();
 		
 		itemLogisticator.preInit();
 		//itemLogisticsPacket.preInit();
