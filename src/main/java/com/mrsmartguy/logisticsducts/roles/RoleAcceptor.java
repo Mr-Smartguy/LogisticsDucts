@@ -39,6 +39,10 @@ public class RoleAcceptor extends LogisticsRole {
 	public int acceptsItems(LogisticatorItem logisticator, FilterLogic filter, ItemStack items) {
 		// Acceptors will accept any items that pass the given filter that the attached inventory has space for
 		
+		// Do not accept items if the logisticator is not powered
+		if (!logisticator.isPowered())
+			return 0;
+		
 		// Check if the associated filter allows the items to be accepted
 		if (!filter.matchesFilter(items))
 			return 0;

@@ -44,6 +44,9 @@ public class RoleProvider extends LogisticsRole {
 
 	@Override
 	public int requestItems(LogisticatorItem logisticator, FilterLogic filter, IGridTileRoute target, byte finalDir, ItemStack items, boolean ignoreMeta, boolean ignoreNBT) {
+
+		// Do not provide items if the logisticator is not powered
+		if (logisticator.isPowered() == false) return 0;
 		
 		// Send up to the desired number of the given item on the route
 		int numSent = 0;
@@ -103,7 +106,11 @@ public class RoleProvider extends LogisticsRole {
 	}
 
 	@Override
-	public List<ItemStack> getProvidedItems(LogisticatorItem logisticator, FilterLogic filter) {		
+	public List<ItemStack> getProvidedItems(LogisticatorItem logisticator, FilterLogic filter) {
+		
+		// Do not provide items if the logisticator is not powered
+		if (logisticator.isPowered() == false) return Collections.EMPTY_LIST;
+		
 		return Collections.unmodifiableList(itemsSorted);
 	}
 
