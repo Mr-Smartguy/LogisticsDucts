@@ -22,16 +22,12 @@ public class LDItems {
 	
 	private static final LDItems INSTANCE = new LDItems();
 	
-	@ObjectHolder("logisticsducts:itemlogisticator")
+	@ObjectHolder("logisticsducts:logisticator")
 	public static ItemLogisticator itemLogisticator;
+	@ObjectHolder("logisticsducts:logisticsrecipe")
+	public static ItemLogisticsRecipe itemLogisticsRecipe;
 	
 	public static void preInit() {
-
-		itemLogisticator = new ItemLogisticator();
-		
-		itemLogisticator.preInit();
-		//itemLogisticsPacket.preInit();
-
 		MinecraftForge.EVENT_BUS.register(INSTANCE);
 	}
 
@@ -40,12 +36,14 @@ public class LDItems {
 	public void registerRecipes(RegistryEvent.Register<IRecipe> event) {
 
 		itemLogisticator.initialize();
+		itemLogisticsRecipe.initialize();
 	}
 	
 	@SideOnly(Side.CLIENT)
 	public static void initModels()
 	{
 		itemLogisticator.registerModels();
+		itemLogisticsRecipe.registerModels();
 	}
 
 }

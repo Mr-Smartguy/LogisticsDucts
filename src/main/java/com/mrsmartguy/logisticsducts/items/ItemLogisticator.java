@@ -37,6 +37,7 @@ public class ItemLogisticator extends ItemAttachment {
 
 		super();
 		this.setUnlocalizedName("logisticsducts.logisticator");
+		this.setRegistryName("logisticator");
 	}
 
 	@Override
@@ -76,21 +77,17 @@ public class ItemLogisticator extends ItemAttachment {
 
 	@Override
 	public boolean preInit() {
-
-		ForgeRegistries.ITEMS.register(setRegistryName("logisticator"));
-		//ThermalDynamics.proxy.addIModelRegister(this);
+		return true;
+	}
+	
+	@Override
+	public boolean initialize() {
 
 		logisticatorBasic = new ItemStack(this, 1, 0);
 		logisticatorHardened = new ItemStack(this, 1, 1);
 		logisticatorReinforced = new ItemStack(this, 1, 2);
 		logisticatorSignalum = new ItemStack(this, 1, 3);
 		logisticatorResonant = new ItemStack(this, 1, 4);
-
-		return true;
-	}
-	
-	@Override
-	public boolean initialize() {
 		
 		addShapedRecipe(logisticatorBasic,
 				"IGI",

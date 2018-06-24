@@ -1,6 +1,8 @@
 package com.mrsmartguy.logisticsducts.proxy;
 
 import com.mrsmartguy.logisticsducts.blocks.LDBlocks;
+import com.mrsmartguy.logisticsducts.items.ItemLogisticator;
+import com.mrsmartguy.logisticsducts.items.ItemLogisticsRecipe;
 
 import net.minecraft.block.Block;
 import net.minecraft.item.Item;
@@ -33,6 +35,8 @@ public class CommonProxy {
     @SubscribeEvent
     public static void registerItems(RegistryEvent.Register<Item> event) {
     	IForgeRegistry<Item> registry = event.getRegistry();
+    	registry.register(new ItemLogisticator());
+    	registry.register(new ItemLogisticsRecipe());
     }
 
 }

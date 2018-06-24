@@ -1,7 +1,11 @@
 package com.mrsmartguy.logisticsducts;
 
+import org.apache.logging.log4j.Level;
+import org.apache.logging.log4j.Logger;
+
 import com.mrsmartguy.logisticsducts.blocks.LDBlocks;
 import com.mrsmartguy.logisticsducts.ducts.attachments.LDAttachmentRegistry;
+import com.mrsmartguy.logisticsducts.gui.GuiHandler;
 import com.mrsmartguy.logisticsducts.items.LDItems;
 import com.mrsmartguy.logisticsducts.proxy.CommonProxy;
 import com.mrsmartguy.logisticsducts.roles.LDRoleRegistry;
@@ -11,7 +15,7 @@ import net.minecraftforge.fml.common.SidedProxy;
 import net.minecraftforge.fml.common.event.FMLInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPostInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
-
+import net.minecraftforge.fml.common.network.NetworkRegistry;
 import cofh.thermaldynamics.ThermalDynamics;
 import cofh.thermalexpansion.ThermalExpansion;
 
@@ -21,6 +25,10 @@ public class LogisticsDucts {
 	public static final String MODID = "logisticsducts";
 	public static final String MODNAME = "Logistics Ducts";
 	public static final String MODVERSION = "0.0.1";
+
+	public static final GuiHandler GUI_HANDLER = new GuiHandler();
+	
+	private Logger logger;
 	
 	@Mod.Instance(MODID)
 	public static LogisticsDucts instance;
@@ -32,12 +40,17 @@ public class LogisticsDucts {
 
 	@Mod.EventHandler
 	public void preInit(FMLPreInitializationEvent event) {
-		System.out.println(MODNAME + " is loading!");
+		logger = event.getModLog();
+		logger.log(Level.INFO, MODNAME + "is loading!");
+		proxy.preInit(event);
+		
 		LDBlocks.preInit();
 		LDItems.preInit();
+		
 		LDAttachmentRegistry.registerAttachments();
 		LDRoleRegistry.registerRoles();
-		proxy.preInit(event);
+		
+		NetworkRegistry.INSTANCE.registerGuiHandler(instance, GUI_HANDLER);
 	}
 
 	@Mod.EventHandler
