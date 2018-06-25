@@ -60,7 +60,7 @@ public class LDRoleRegistry {
 		{
 			return REGISTRY.get(roleName).get();
 		}
-		throw new RuntimeException("The given LogisticsRole name is not registered.");
+		return null;
 	}
 	
 	/**
