@@ -446,7 +446,12 @@ public class LogisticatorItem extends RetrieverItem implements ILogisticator {
 		{
 			if (tag.hasKey("Role" + i))
 			{
-				roles[i] = LDRoleRegistry.createRole(tag.getString("Role" + i));
+				NBTTagCompound roleTag = tag.getCompoundTag("Role" + i);
+				roles[i] = LDRoleRegistry.createRole(roleTag.getString("name"));
+				if (roleTag.hasKey("data"))
+				{
+					roles[i].readFromTag(roleTag.getCompoundTag("data"));
+				}
 			}
 		}
 	}
@@ -467,8 +472,16 @@ public class LogisticatorItem extends RetrieverItem implements ILogisticator {
 		// Write roles to NBT tag
 		for (int i = 0; i < roles.length; i++)
 		{
+			NBTTagCompound roleTag = new NBTTagCompound();
 			if (roles[i] != null)
-				tag.setString("Role" + i, roles[i].getName());
+			{
+				NBTTagCompound roleData = new NBTTagCompound();
+				roleTag.setString("name", roles[i].getName());
+				if (roles[i].writeToTag(roleData))
+					roleTag.setTag("data", roleData);
+				
+			}
+			tag.setTag("Role" + i, roleTag);
 		}
 	}
 	

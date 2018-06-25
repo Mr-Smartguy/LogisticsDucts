@@ -1,16 +1,23 @@
 package com.mrsmartguy.logisticsducts.items;
 
+import java.util.List;
+
 import com.mrsmartguy.logisticsducts.LogisticsDucts;
 import com.mrsmartguy.logisticsducts.gui.GuiHandler;
+import com.mrsmartguy.logisticsducts.gui.container.ContainerRecipe;
 
 import net.minecraft.client.renderer.block.model.ModelResourceLocation;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.inventory.IInventory;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.NBTTagList;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.EnumHand;
 import net.minecraft.world.World;
 import net.minecraftforge.client.model.ModelLoader;
+import net.minecraftforge.common.util.Constants.NBT;
 import net.minecraftforge.fml.common.registry.ForgeRegistries;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
@@ -33,7 +40,6 @@ public class ItemLogisticsRecipe extends Item {
 	}
 
 	public void initialize() {
-		
 		
 	}
 	

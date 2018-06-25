@@ -45,7 +45,7 @@ public class PendingItem {
 	
 	/**
 	 * Returns the destination of this item once it's sent through the logistics network
-	 * @return This pending item's destination's position
+	 * @return This pending item's destination's position (the block that the target logisticator is attached to)
 	 */
 	public BlockPos getTargetPos()
 	{

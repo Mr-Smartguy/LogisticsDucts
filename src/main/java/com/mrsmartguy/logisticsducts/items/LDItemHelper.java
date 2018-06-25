@@ -1,6 +1,7 @@
 package com.mrsmartguy.logisticsducts.items;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -70,6 +71,36 @@ public class LDItemHelper {
 		}
 		
 		return intersection;
+	}
+	
+	/**
+	 * Returns all items in the given list that match the given match with the given comparison flags.
+	 * @param match The item to match
+	 * @param sortedItems The sorted list of items to check for matches in
+	 * @param ignoreMeta Whether to ignore metadata in comparison
+	 * @param ignoreNBT Whether to ignore tags in comparison
+	 * @return The list of items that match
+	 */
+	public static List<ItemStack> getAllThatMatch(ItemStack match, List<ItemStack> sortedItems, boolean ignoreMeta, boolean ignoreNBT)
+	{
+		int index = Collections.binarySearch(sortedItems, match, LDItemHelper.itemComparator);
+		if (index < 0)
+			return Collections.EMPTY_LIST;
+		
+		ArrayList<ItemStack> matchedItems = new ArrayList<ItemStack>();
+		
+		// Make sure we are at the first match, stepping backwards until there are no matches behind the current index
+		while (index > 0 && itemComparator.compareWithFlags(match, sortedItems.get(index - 1), ignoreMeta, ignoreNBT) == 0)
+			index--;
+		
+		// Record the current item in the list if it matches the given match item and if the index is not out of bounds
+		while (index < sortedItems.size() && itemComparator.compareWithFlags(match, sortedItems.get(index), ignoreMeta, ignoreNBT) == 0)
+		{
+			matchedItems.add(sortedItems.get(index));
+			index++;
+		}
+		
+		return matchedItems;
 	}
 	
 	/**

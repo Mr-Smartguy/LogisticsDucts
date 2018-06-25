@@ -2,12 +2,21 @@ package com.mrsmartguy.logisticsducts.gui.container;
 
 import com.mrsmartguy.logisticsducts.gui.slot.SlotFilterStack;
 import com.mrsmartguy.logisticsducts.items.ItemLogisticsRecipe;
+import com.mrsmartguy.logisticsducts.roles.LogisticsRole;
 
+import cofh.core.util.helpers.ItemHelper;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.InventoryPlayer;
+import net.minecraft.inventory.ClickType;
 import net.minecraft.inventory.Container;
 import net.minecraft.inventory.InventoryBasic;
 import net.minecraft.inventory.Slot;
+import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.NBTTagEnd;
+import net.minecraft.nbt.NBTTagList;
+import net.minecraftforge.common.util.Constants.NBT;
+import net.minecraftforge.items.ItemHandlerHelper;
 
 public class ContainerRecipe extends Container {
 	
@@ -20,12 +29,15 @@ public class ContainerRecipe extends Container {
 	public static final int INV_LEFT = 8;
 	public static final int INV_TOP = 84;
 	public static final int HOTBAR_TOP = 142;
+	
+	public static final int NUM_INGREDIENT_SLOTS = 9;
+	public static final int NUM_PRODUCT_SLOTS = 1;
 
-	ItemLogisticsRecipe recipeItem;
+	ItemStack recipeItem;
 	InventoryPlayer playerInv;
 	InventoryBasic inv;
 	
-	public ContainerRecipe(ItemLogisticsRecipe recipeItem, InventoryPlayer playerInv)
+	public ContainerRecipe(ItemStack recipeItem, InventoryPlayer playerInv)
 	{
 		this.recipeItem = recipeItem;
 		this.playerInv = playerInv;
@@ -33,6 +45,35 @@ public class ContainerRecipe extends Container {
 		
 		addCraftingSlots();
 		addInventorySlots();
+		
+		readFromStack(recipeItem, playerInv);
+	}
+	
+	private void readFromStack(ItemStack stack, InventoryPlayer playerInv)
+	{
+		if (stack == null || stack.isEmpty())
+			throw new RuntimeException("Attempted to get ContainerRecipe of empty stack");
+		
+		if (!(stack.getItem() instanceof ItemLogisticsRecipe))
+			throw new RuntimeException("Attempted to get ContainerRecipe of stack with item type that is not ItemLogisticsRecipe");
+		
+		if (!stack.hasTagCompound())
+			return;
+		
+		NBTTagCompound tag = stack.getTagCompound();
+		
+		if (!tag.hasKey("inventory"))
+			return;
+		
+		NBTTagList itemTags = tag.getTagList("inventory", NBT.TAG_COMPOUND);
+		if (itemTags.tagCount() != (ContainerRecipe.NUM_INGREDIENT_SLOTS + ContainerRecipe.NUM_PRODUCT_SLOTS))
+			return;
+		
+		for (int i = 0; i < (ContainerRecipe.NUM_INGREDIENT_SLOTS + ContainerRecipe.NUM_PRODUCT_SLOTS); i++)
+		{
+			ItemStack curStack = new ItemStack(itemTags.getCompoundTagAt(i));
+			putStackInSlot(i, curStack);
+		}
 	}
 	
 	private void addCraftingSlots()
@@ -61,12 +102,166 @@ public class ContainerRecipe extends Container {
 		}
 	}
 	
+	public ItemStack getProduct()
+	{
+		return inventorySlots.get(NUM_INGREDIENT_SLOTS).getStack();
+	}
+	
 	@Override
 	public boolean canInteractWith(EntityPlayer playerIn)
 	{
 		return true;
 	}
 	
+	@Override
+	public void onContainerClosed(EntityPlayer playerIn) {
+		
+		super.onContainerClosed(playerIn);
+		updateStackNBT();
+	}
+	
+	@Override
+	public ItemStack slotClick(int slotId, int mouseButton, ClickType modifier, EntityPlayer player) {
+
+		Slot slot = slotId < 0 ? null : this.inventorySlots.get(slotId);
+		
+		// Check if the slot is part of the recipe
+		if (slot != null && slot.inventory == inv) {
+			
+			// Cancel dragging, not applicable here
+			resetDrag();
+			
+			ItemStack slotStack = slot.getStack();
+			ItemStack playerStack = player.inventory.getItemStack();
+			ItemStack newStack = slotStack.copy();
+			
+			// Middle click, remove stack in slot
+			if (mouseButton == 2)
+			{
+				newStack = ItemStack.EMPTY;
+			}
+			// Right click, decrement if sneaking otherwise either split or increment
+			else if (mouseButton == 1)
+			{
+				// Sneaking, decrement
+				if (modifier == ClickType.QUICK_MOVE)
+				{
+					if (newStack.getCount() == 1)
+						newStack = ItemStack.EMPTY;
+					else
+						newStack.shrink(1);
+				}
+				// Add one if slot stack is empty
+				else if (slotStack.isEmpty())
+				{
+					newStack = playerStack.copy();
+					newStack.setCount(1);
+				}
+				// Increment if stacks can stack
+				else if (ItemHandlerHelper.canItemStacksStack(slotStack, playerStack) || playerStack.isEmpty())
+				{
+					newStack.grow(1);
+				}
+				// Split if player hand is empty
+				else if (playerStack.isEmpty())
+				{
+					newStack.setCount(newStack.getCount() / 2);
+				}
+			}
+			// Left click, clear if sneaking otherwise either add or replace
+			else
+			{
+				// Clear stack if player is not holding anything or quick move
+				if (playerStack.isEmpty() || modifier == ClickType.QUICK_MOVE)
+				{
+					newStack = ItemStack.EMPTY;
+				}
+				// Add if stacks can stack
+				else if (ItemHandlerHelper.canItemStacksStack(slotStack, playerStack))
+				{
+					newStack.grow(playerStack.getCount());
+				}
+				// Replace the slot stack with the player stack
+				else
+				{
+					newStack = playerStack.copy();
+				}
+			}
+			
+			slot.putStack(newStack);
+			slot.onSlotChanged();
+			return player.inventory.getItemStack();
+		}
+		return super.slotClick(slotId, mouseButton, modifier, player);
+	}
+
+	@Override
+	public ItemStack transferStackInSlot(EntityPlayer player, int slotIndex) {
+
+		/*Slot slot = inventorySlots.get(slotIndex);
+
+		if (slot != null && slot.getHasStack()) {
+			ItemStack stack = slot.getStack();
+			// Invalid slot
+			if (slotIndex < 0)
+			{
+				return ItemStack.EMPTY;
+			}
+			// Player inventory slot
+			else if (slotIndex >= NUM_INGREDIENT_SLOTS + NUM_PRODUCT_SLOTS)
+			{
+				Slot k = null;
+				for (int i = invFull; i < invTile; i++) {
+					Slot slot1 = inventorySlots.get(i);
+					if (!slot1.getHasStack()) {
+						if (k == null) {
+							k = slot1;
+						}
+					} else {
+						if (ItemHelper.itemsEqualWithMetadata(slot1.getStack(), stack)) {
+							return ItemStack.EMPTY;
+						}
+					}
+				}
+				if (k != null) {
+					k.putStack(stack.copy());
+				}
+
+				return ItemStack.EMPTY;
+			}
+			else
+			{
+				slot.putStack(ItemStack.EMPTY);
+				slot.onSlotChanged();
+
+			}
+		}*/
+		return ItemStack.EMPTY;
+	}
+	
+	/**
+	 * Updates the NBT tag of the stack that this container is associated with.
+	 * Must be called whenever slots in the container are updated.
+	 */
+	private void updateStackNBT()
+	{
+		NBTTagCompound tag = new NBTTagCompound();
+		NBTTagList invTagList = new NBTTagList();
+		
+		for (int i = 0; i < inv.getSizeInventory(); i++)
+		{
+			ItemStack curStack = inv.getStackInSlot(i);
+			NBTTagCompound curStackTag = new NBTTagCompound();
+			
+			if (curStack != null)
+				curStackTag = curStack.writeToNBT(curStackTag);
+
+			invTagList.appendTag(curStackTag);
+		}
+		
+		tag.setTag("inventory", invTagList);
+		recipeItem.setTagCompound(tag);
+	}
 	
 
 }

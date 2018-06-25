@@ -10,8 +10,15 @@ import cofh.thermaldynamics.duct.attachments.filter.FilterLogic;
 import cofh.thermaldynamics.multiblock.IGridTileRoute;
 import cofh.thermaldynamics.multiblock.Route;
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NBTTagCompound;
 
 public class RoleCrafter extends LogisticsRole {
+	
+	// Stores pending crafting operations
+	// The outer most list is a list of requests
+	// Each request is a list of operations that must be performed in that order
+	// Each operation is a mapping of result stack to a list of ingredient stacks
+	//private List<List<Map<ItemStack, List<ItemStack>>>> pendingCrafts = new ArrayList<List<Map<ItemStack, List<ItemStack>>>>();
 
 	@Override
 	public String getName() {
@@ -59,6 +66,19 @@ public class RoleCrafter extends LogisticsRole {
 	public void updateCaches(LogisticatorItem logisticator, FilterLogic filter)
 	{
 		// TODO crafter caching
+	}
+	
+	@Override
+	public boolean writeToTag(NBTTagCompound tag) {
+		
+		
+		
+		return true;
+	}
+	
+	@Override
+	public void readFromTag(NBTTagCompound tag) {
+		
 	}
 
 }

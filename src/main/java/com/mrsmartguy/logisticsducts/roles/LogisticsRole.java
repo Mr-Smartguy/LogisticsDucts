@@ -11,6 +11,7 @@ import cofh.thermaldynamics.duct.attachments.filter.FilterLogic;
 import cofh.thermaldynamics.multiblock.IGridTileRoute;
 import cofh.thermaldynamics.multiblock.Route;
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NBTTagCompound;
 
 /**
  * Represents a role that a logisticator can perform in the logistics system
@@ -85,5 +86,18 @@ public abstract class LogisticsRole {
 	 * @param filter TODO
 	 */
 	public abstract void updateCaches(LogisticatorItem logisticator, FilterLogic filter);
+	
+	/**
+	 * Writes any extra data this role needs to store to an NBT tag
+	 * @param tag The tag to write to
+	 * @return True if any data was written, false otherwise
+	 */
+	public boolean writeToTag(NBTTagCompound tag) { return false; }
+	
+	/**
+	 * Reads any data from the NBT tag that this role saved previously
+	 * @param tag The tag to read to
+	 */
+	public void readFromTag(NBTTagCompound tag) {}
 
 }
