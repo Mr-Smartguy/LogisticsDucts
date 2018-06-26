@@ -4,9 +4,11 @@ import java.lang.ref.Reference;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.SortedSet;
 import java.util.TreeSet;
+import java.util.stream.Collectors;
 
 import com.mrsmartguy.logisticsducts.ducts.attachments.LogisticatorItem;
 import com.mrsmartguy.logisticsducts.gui.container.ContainerRecipe;
@@ -35,13 +37,23 @@ public class CraftingRequest {
 	public static CraftingRequest createRequest(ItemStack requestedProduct, List<ContainerRecipe> recipes, List<ItemStack> providedItemsSorted)
 	{		
 		
-		ItemStack insufficient = new ItemStack((Item)null);
-		ArrayList<ItemStack> toRetrieve = new ArrayList<ItemStack>();
-		CraftingTree newTree = constructTree(requestedProduct, recipes, providedItemsSorted, toRetrieve, insufficient);
+		List<ItemStack> insufficient = new ArrayList<ItemStack>();
+		CraftingTree newTree = constructTree(requestedProduct, recipes, providedItemsSorted, insufficient);
 		if (newTree != null)
 			return new CraftingRequest(newTree);
 		else
 			return null;
+	}
+	
+	/**
+	 * Returns the integer result of a divided by b, rounded up
+	 * @param a The numerator
+	 * @param b The denominator
+	 * @return Ceil(a/b)
+	 */
+	private static int roundUpDivide(int a, int b)
+	{
+		return (a + b - 1) / b;
 	}
 	
 	/**
@@ -57,8 +69,7 @@ public class CraftingRequest {
 			ItemStack curProduct,
 			List<ContainerRecipe> recipes,
 			List<ItemStack> providedItemsSorted,
-			List<ItemStack> usedItems,
-			ItemStack insufficient)
+			List<ItemStack> insufficient)
 	{
 		// Get items that match the product in the provided items
 		List<ItemStack> productProvided = LDItemHelper.getAllThatMatch(curProduct, providedItemsSorted, false, false);
@@ -76,13 +87,74 @@ public class CraftingRequest {
 			CraftingTree retVal = new CraftingTree(new CraftingOperation(providedStack), null);
 			return retVal;
 		}
-		// Check if we have a recipe for the product
+		
+		// TODO make this handle more than one recipe for the same item
+		// Find the first recipe with a product that equals the desired product 
 		Optional<ContainerRecipe> recipeOpt = recipes
 				.stream()
 				.filter(x -> LDItemHelper.itemComparator.compareWithFlags(curProduct, x.getProduct(), false, false) == 0)
 				.findFirst();
 		
+		if (recipeOpt.isPresent())
+		{
+			List<CraftingTree> children = new ArrayList<CraftingTree>();
+			ContainerRecipe curRecipe = recipeOpt.get();
+			List<ItemStack> ingredients = curRecipe.getIngredients();
+			Map<Integer, ItemStack> ingredientMap = curRecipe.getIngredientMap();
+			int recipeQuantity = roundUpDivide(curProduct.getCount(), curRecipe.getProduct().getCount());
+			
+			boolean allIngredientsFound = true;
+			
+			for (ItemStack ingredient : ingredients)
+			{
+				// Scale up the ingredient count by the recipe quantity
+				ingredient = ingredient.copy();
+				ingredient.setCount(ingredient.getCount() * recipeQuantity);
+				
+				// Attempt to create a crafting tree for the current ingredient
+				CraftingTree ingredientTree = constructTree(ingredient, recipes, providedItemsSorted, insufficient);
+				if (ingredientTree != null)
+				{
+					children.add(ingredientTree);
+					// Less than the desired amount of ingredient was returned, this means we need another tree
+					// for crafting the remaining ingredients
+					if (ingredientTree.getOperation().getProduct().getCount() < curProduct.getCount())
+					{
+						// Make a copy of the current ingredient and set the count to the remaining amount needed
+						ItemStack ingredientRemaining = ingredient.copy();
+						ingredientRemaining.shrink(ingredientTree.getOperation().getProduct().getCount());
+						// Attempt to make another crafting tree to craft the remaining ingredient needed
+						CraftingTree ingredientTreeCraft = constructTree(ingredient, recipes, providedItemsSorted, insufficient);
+						if (ingredientTreeCraft != null &&
+								ingredientTreeCraft.getOperation().getProduct().getCount() >= ingredientRemaining.getCount())
+						{
+							children.add(ingredientTreeCraft);
+						}
+						else
+						{
+							// No valid ingredient crafting tree can be made for the remaining quantity, exit the loop
+							allIngredientsFound = false;
+							break;
+						}
+					}
+				}
+				// No valid ingredient crafting tree can be made, exit the loop
+				else
+				{
+					allIngredientsFound = false;
+					break;
+				}
+			}
+			
+			// All ingredients are accounted for, create and return the resultant crafting tree
+			if (allIngredientsFound)
+			{
+				return new CraftingTree(new CraftingOperation(curProduct, ingredientMap, recipeQuantity), children);
+			}
+		}
 		
+		// No product provided and no recipe found, add insufficient ingredient and return null
+		insufficient.add(curProduct);
 		return null;
 	}
 	

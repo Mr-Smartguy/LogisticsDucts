@@ -52,6 +52,11 @@ public class LogisticsDucts {
 		
 		NetworkRegistry.INSTANCE.registerGuiHandler(instance, GUI_HANDLER);
 	}
+	
+	public Logger getLogger()
+	{
+		return logger;
+	}
 
 	@Mod.EventHandler
 	public void init(FMLInitializationEvent event) {

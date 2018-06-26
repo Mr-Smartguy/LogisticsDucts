@@ -1,5 +1,10 @@
 package com.mrsmartguy.logisticsducts.gui.container;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+
 import com.mrsmartguy.logisticsducts.gui.slot.SlotFilterStack;
 import com.mrsmartguy.logisticsducts.items.ItemLogisticsRecipe;
 import com.mrsmartguy.logisticsducts.roles.LogisticsRole;
@@ -37,11 +42,15 @@ public class ContainerRecipe extends Container {
 	InventoryPlayer playerInv;
 	InventoryBasic inv;
 	
+	private List<ItemStack> ingredientList;
+	private Map<Integer, ItemStack> ingredientMap;
+	
 	public ContainerRecipe(ItemStack recipeItem, InventoryPlayer playerInv)
 	{
 		this.recipeItem = recipeItem;
 		this.playerInv = playerInv;
 		this.inv = new InventoryBasic("Recipe", false, 10);
+		this.ingredientList = new ArrayList<ItemStack>();
 		
 		addCraftingSlots();
 		addInventorySlots();
@@ -74,6 +83,19 @@ public class ContainerRecipe extends Container {
 			ItemStack curStack = new ItemStack(itemTags.getCompoundTagAt(i));
 			putStackInSlot(i, curStack);
 		}
+		
+		makeIngredientList();
+	}
+	
+	private void makeIngredientList()
+	{
+		ingredientList.clear();
+		
+		for (int i = 0; i < ContainerRecipe.NUM_INGREDIENT_SLOTS; i++)
+		{
+			ingredientList.add(getSlot(i).getStack());
+			ingredientMap.put(i, getSlot(i).getStack());
+		}
 	}
 	
 	private void addCraftingSlots()
@@ -105,6 +127,24 @@ public class ContainerRecipe extends Container {
 	public ItemStack getProduct()
 	{
 		return inventorySlots.get(NUM_INGREDIENT_SLOTS).getStack();
+	}
+	
+	/**
+	 * Returns a list of all items in the recipe's ingredients.
+	 * @return A list of all items in the recipe's ingredients
+	 */
+	public List<ItemStack> getIngredients()
+	{
+		return Collections.unmodifiableList(ingredientList);
+	}
+	
+	/**
+	 * Returns a mapping of crafting grid location (0-8 inclusive) to itemstack.
+	 * @return A mapping of crafting grid location (0-8 inclusive) to itemstack
+	 */
+	public Map<Integer, ItemStack> getIngredientMap()
+	{
+		return Collections.unmodifiableMap(ingredientMap);
 	}
 	
 	@Override
@@ -197,45 +237,7 @@ public class ContainerRecipe extends Container {
 
 	@Override
 	public ItemStack transferStackInSlot(EntityPlayer player, int slotIndex) {
-
-		/*Slot slot = inventorySlots.get(slotIndex);
-
-		if (slot != null && slot.getHasStack()) {
-			ItemStack stack = slot.getStack();
-			// Invalid slot
-			if (slotIndex < 0)
-			{
-				return ItemStack.EMPTY;
-			}
-			// Player inventory slot
-			else if (slotIndex >= NUM_INGREDIENT_SLOTS + NUM_PRODUCT_SLOTS)
-			{
-				Slot k = null;
-				for (int i = invFull; i < invTile; i++) {
-					Slot slot1 = inventorySlots.get(i);
-					if (!slot1.getHasStack()) {
-						if (k == null) {
-							k = slot1;
-						}
-					} else {
-						if (ItemHelper.itemsEqualWithMetadata(slot1.getStack(), stack)) {
-							return ItemStack.EMPTY;
-						}
-					}
-				}
-				if (k != null) {
-					k.putStack(stack.copy());
-				}
-
-				return ItemStack.EMPTY;
-			}
-			else
-			{
-				slot.putStack(ItemStack.EMPTY);
-				slot.onSlotChanged();
-
-			}
-		}*/
+		
 		return ItemStack.EMPTY;
 	}
 	

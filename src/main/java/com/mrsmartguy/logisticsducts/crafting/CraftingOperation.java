@@ -17,13 +17,15 @@ public class CraftingOperation {
 	private ItemStack product;
 	private Map<Integer, ItemStack> posIngredientMap;
 	private List<ItemStack> ingredientList;
+	private int recipeQuantity;
 	
 	/**
 	 * Constructs a crafting operation.
-	 * @param product The produced item stack for this operation's recipe.
+	 * @param product The produced item stack for this operation's recipe
 	 * @param ingredients A mapping of crafting position to item
+	 * @param recipeQuantity The number of times the recipe is to be crafted
 	 */
-	public CraftingOperation(ItemStack product, Map<Integer, ItemStack> ingredients)
+	public CraftingOperation(ItemStack product, Map<Integer, ItemStack> ingredients, int recipeQuantity)
 	{
 		this.product = product.copy();
 		this.posIngredientMap = new LinkedHashMap<Integer, ItemStack>(ingredients);
@@ -31,6 +33,7 @@ public class CraftingOperation {
 				.stream()
 				.filter(x -> x != null)
 				.collect(Collectors.toCollection(ArrayList::new));
+		this.recipeQuantity = recipeQuantity;
 	}
 	
 	/**
@@ -48,6 +51,11 @@ public class CraftingOperation {
 	{
 		return product;
 	}
+	
+	public int getTotalProductCount()
+	{
+		return product.getCount() * recipeQuantity;
+	}	
 	
 	public ItemStack getIngredientAtPos(int pos)
 	{
