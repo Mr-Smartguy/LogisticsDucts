@@ -53,12 +53,16 @@ public class ContainerRecipe extends Container {
 		this.ingredientList = new ArrayList<ItemStack>();
 		
 		addCraftingSlots();
-		addInventorySlots();
 		
-		readFromStack(recipeItem, playerInv);
+		if (playerInv != null)
+		{
+			addInventorySlots();
+		}
+		
+		readFromStack(recipeItem);
 	}
 	
-	private void readFromStack(ItemStack stack, InventoryPlayer playerInv)
+	private void readFromStack(ItemStack stack)
 	{
 		if (stack == null || stack.isEmpty())
 			throw new RuntimeException("Attempted to get ContainerRecipe of empty stack");

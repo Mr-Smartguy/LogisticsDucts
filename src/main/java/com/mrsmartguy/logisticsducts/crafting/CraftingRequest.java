@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -34,7 +35,7 @@ public class CraftingRequest {
 	 * @param providedItemsSorted The list of items currently available for crafting, sorted (the contents will be modified!)
 	 * @return The generated request, or null if the given product cannot be crafted with the given recipes
 	 */
-	public static CraftingRequest createRequest(ItemStack requestedProduct, List<ContainerRecipe> recipes, List<ItemStack> providedItemsSorted)
+	public static CraftingRequest createRequest(ItemStack requestedProduct, Map<ContainerRecipe, LogisticatorItem> recipes, List<ItemStack> providedItemsSorted)
 	{		
 		
 		List<ItemStack> insufficient = new ArrayList<ItemStack>();
@@ -67,7 +68,7 @@ public class CraftingRequest {
 	 */
 	private static CraftingTree constructTree(
 			ItemStack curProduct,
-			List<ContainerRecipe> recipes,
+			Map<ContainerRecipe, LogisticatorItem> recipes,
 			List<ItemStack> providedItemsSorted,
 			List<ItemStack> insufficient)
 	{
@@ -90,15 +91,17 @@ public class CraftingRequest {
 		
 		// TODO make this handle more than one recipe for the same item
 		// Find the first recipe with a product that equals the desired product 
-		Optional<ContainerRecipe> recipeOpt = recipes
+		Optional<Entry<ContainerRecipe, LogisticatorItem>> recipeOpt = recipes
+				.entrySet()
 				.stream()
-				.filter(x -> LDItemHelper.itemComparator.compareWithFlags(curProduct, x.getProduct(), false, false) == 0)
+				.filter(e -> LDItemHelper.itemComparator.compareWithFlags(curProduct, e.getKey().getProduct(), false, false) == 0)
 				.findFirst();
 		
 		if (recipeOpt.isPresent())
 		{
 			List<CraftingTree> children = new ArrayList<CraftingTree>();
-			ContainerRecipe curRecipe = recipeOpt.get();
+			ContainerRecipe curRecipe = recipeOpt.get().getKey();
+			LogisticatorItem logisticator = recipeOpt.get().getValue();
 			List<ItemStack> ingredients = curRecipe.getIngredients();
 			Map<Integer, ItemStack> ingredientMap = curRecipe.getIngredientMap();
 			int recipeQuantity = roundUpDivide(curProduct.getCount(), curRecipe.getProduct().getCount());
@@ -149,7 +152,7 @@ public class CraftingRequest {
 			// All ingredients are accounted for, create and return the resultant crafting tree
 			if (allIngredientsFound)
 			{
-				return new CraftingTree(new CraftingOperation(curProduct, ingredientMap, recipeQuantity), children);
+				return new CraftingTree(new CraftingOperation(curProduct, ingredientMap, recipeQuantity, logisticator.baseTile.getPos(), logisticator.side), children);
 			}
 		}
 		

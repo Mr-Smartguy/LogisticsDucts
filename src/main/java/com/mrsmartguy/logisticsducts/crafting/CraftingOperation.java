@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import net.minecraft.item.ItemStack;
+import net.minecraft.util.math.BlockPos;
 
 /**
  * Represents a single crafting operation.
@@ -18,14 +19,18 @@ public class CraftingOperation {
 	private Map<Integer, ItemStack> posIngredientMap;
 	private List<ItemStack> ingredientList;
 	private int recipeQuantity;
+	private BlockPos ductPos;
+	private byte attachmentDir;
 	
 	/**
 	 * Constructs a crafting operation.
 	 * @param product The produced item stack for this operation's recipe
 	 * @param ingredients A mapping of crafting position to item
 	 * @param recipeQuantity The number of times the recipe is to be crafted
+	 * @param ductPos The position of the duct that the crafter that will perform this operation is attached to
+	 * @param attachmentDir The side of the duct that the crafter that will perform this operation is attached to
 	 */
-	public CraftingOperation(ItemStack product, Map<Integer, ItemStack> ingredients, int recipeQuantity)
+	public CraftingOperation(ItemStack product, Map<Integer, ItemStack> ingredients, int recipeQuantity, BlockPos ductPos, byte attachmentSide)
 	{
 		this.product = product.copy();
 		this.posIngredientMap = new LinkedHashMap<Integer, ItemStack>(ingredients);
