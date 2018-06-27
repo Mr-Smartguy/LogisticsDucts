@@ -40,4 +40,13 @@ public class LogisticsDestination {
 		this.destPos = finalPos;
 		this.destDir = EnumFacing.VALUES[finalDirection];
 	}
+	
+	@Override
+	public boolean equals(Object other)
+	{
+		if (!(other instanceof LogisticsDestination))
+			return false;
+		LogisticsDestination otherDest = (LogisticsDestination) other;
+		return destDir.equals(otherDest.destDir) && destPos.equals(otherDest.destPos);
+	}
 }

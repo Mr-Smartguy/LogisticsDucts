@@ -408,6 +408,12 @@ public class LogisticatorItem extends RetrieverItem implements ILogisticator {
 				}
 			}
 		}
+		// If no network exists yet there were no other logisticators, make a new network
+		if (network == null)
+		{
+			network = new LogisticsNetwork();
+			network.addEndpoint(this);
+		}
 	}
 	
 	/**
@@ -429,6 +435,7 @@ public class LogisticatorItem extends RetrieverItem implements ILogisticator {
 				network = new LogisticsNetwork();
 				network.addEndpoint(this);
 				network.addEndpoint(other);
+				other.setNetwork(otherDest, network);
 			}
 		}
 		// Network exists, merge with the other's or set the other's if it doesn't have one
@@ -803,7 +810,7 @@ public class LogisticatorItem extends RetrieverItem implements ILogisticator {
 		{
 			// Find the TileEntity for the duct at the endpoint
 			LogisticsDestination dest = endpoint.getDestination(network);
-			if (itemDuct.parent.hasWorld())
+			if (dest != null && itemDuct.parent.hasWorld())
 			{
 				TileEntity finalTile = itemDuct.world().getTileEntity(dest.destPos);
 				if (finalTile != null && finalTile instanceof TileDuctItem)
