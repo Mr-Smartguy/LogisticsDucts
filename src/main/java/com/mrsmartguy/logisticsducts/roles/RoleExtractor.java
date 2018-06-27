@@ -6,6 +6,8 @@ import java.util.Map;
 
 import com.mrsmartguy.logisticsducts.ducts.attachments.ILogisticator;
 import com.mrsmartguy.logisticsducts.ducts.attachments.LogisticatorItem;
+import com.mrsmartguy.logisticsducts.network.LogisticsDestination;
+import com.mrsmartguy.logisticsducts.network.LogisticsNetwork;
 
 import cofh.thermaldynamics.duct.attachments.filter.FilterLogic;
 import cofh.thermaldynamics.duct.item.DuctUnitItem;
@@ -28,7 +30,7 @@ public class RoleExtractor extends LogisticsRole {
 	public boolean filterHasStackSize() { return false; }
 
 	@Override
-	public void performRole(LogisticatorItem logisticator, FilterLogic filter, Map<ILogisticator, Route> network) {
+	public void performRole(LogisticatorItem logisticator, FilterLogic filter, LogisticsNetwork network) {
 		// Extractors attempt to send the contents of the attached inventory
 		// to an appropriate acceptor in the logistics network
 		
@@ -59,35 +61,42 @@ public class RoleExtractor extends LogisticsRole {
 		// If a stack was found, extract it
 		if (stack != null)
 		{
-			for (Map.Entry<ILogisticator, Route> endpoint : network.entrySet())
+			if (network != null)
 			{
-				int numAccepted = endpoint.getKey().acceptsItems(stack);
-				if (numAccepted > 0)
+				for (ILogisticator endpoint : network.getEndpoints())
 				{
-					// Pull the item stack out of the inventory
-					ItemStack extracted = handler.extractItem(slot, numAccepted, false);
-					// Update the remaining number of items to be extracted
-					stack.shrink(numAccepted);
-					
-					//TODO pull out more if applicable
-
-					if (extracted.isEmpty() || extracted.getCount() == 0) {
-						return;
+					int numAccepted = endpoint.acceptsItems(stack);
+					if (numAccepted > 0)
+					{
+						// Pull the item stack out of the inventory
+						ItemStack extracted = handler.extractItem(slot, numAccepted, false);
+						// Update the remaining number of items to be extracted
+						stack.shrink(numAccepted);
+						
+						//TODO pull out more if applicable
+	
+						if (extracted.isEmpty() || extracted.getCount() == 0) {
+							return;
+						}
+						
+						Route route = logisticator.createRoute(network, endpoint);
+						if (route != null)
+						{
+							TravelingItem traveling = new TravelingItem(extracted, logisticator.itemDuct, route, (byte) (logisticator.side ^ 1), logisticator.getSpeed());
+							
+							logisticator.itemDuct.insertNewItem(traveling);
+							logisticator.addPendingItem(traveling);
+							
+							if (stack.getCount() == 0) break;
+						}
 					}
-					
-					TravelingItem traveling = new TravelingItem(extracted, logisticator.itemDuct, endpoint.getValue().copy(), (byte) (logisticator.side ^ 1), logisticator.getSpeed());
-					
-					logisticator.itemDuct.insertNewItem(traveling);
-					logisticator.addPendingItem(traveling);
-					
-					if (stack.getCount() == 0) break;
 				}
 			}
 		}
 	}
 
 	@Override
-	public int requestItems(LogisticatorItem logisticator, FilterLogic filter, IGridTileRoute target, byte finalDir, ItemStack items, boolean ignoreMeta, boolean ignoreNBT) {
+	public int requestItems(LogisticatorItem logisticator, FilterLogic filter, LogisticsNetwork network, ILogisticator target, ItemStack items, boolean ignoreMeta, boolean ignoreNBT) {
 		// Extractors do not provide items.
 		return 0;
 	}

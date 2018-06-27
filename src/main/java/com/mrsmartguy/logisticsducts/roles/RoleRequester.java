@@ -9,6 +9,8 @@ import com.mrsmartguy.logisticsducts.ducts.attachments.FilterLogicConstants;
 import com.mrsmartguy.logisticsducts.ducts.attachments.ILogisticator;
 import com.mrsmartguy.logisticsducts.ducts.attachments.LogisticatorItem;
 import com.mrsmartguy.logisticsducts.items.LDItemHelper;
+import com.mrsmartguy.logisticsducts.network.LogisticsDestination;
+import com.mrsmartguy.logisticsducts.network.LogisticsNetwork;
 
 import cofh.thermaldynamics.duct.attachments.filter.FilterLogic;
 import cofh.thermaldynamics.multiblock.IGridTileRoute;
@@ -31,16 +33,14 @@ public class RoleRequester extends LogisticsRole {
 	public boolean guiHasBlacklistButton() { return false; }
 
 	@Override
-	public void performRole(LogisticatorItem logisticator, FilterLogic filter, Map<ILogisticator, Route> network) {
+	public void performRole(LogisticatorItem logisticator, FilterLogic filter, LogisticsNetwork network) {
 		
 		boolean ignoreMeta = filter.getFlag(FilterLogicConstants.flagIgnoreMetadata);
 		boolean ignoreNBT = filter.getFlag(FilterLogicConstants.flagIgnoreNBT);
 		
 		// Request items from any logisticators on the network
-		for (Entry<ILogisticator, Route> entry : network.entrySet())
-		{
-			ILogisticator target = entry.getKey();
-			
+		for (ILogisticator target : network.getEndpoints())
+		{			
 			List<ItemStack> provided = target.getProvidedItems();
 			
 			for (ItemStack curRequest : filter.getFilterStacks())
@@ -54,7 +54,7 @@ public class RoleRequester extends LogisticsRole {
 				
 				if (opt.isPresent())
 				{
-					target.requestItems(network, logisticator.itemDuct, logisticator.side, curRequestWithSize, ignoreMeta, ignoreNBT);
+					target.requestItems(network, logisticator, curRequestWithSize, ignoreMeta, ignoreNBT);
 					return;
 				}
 			}
@@ -62,7 +62,7 @@ public class RoleRequester extends LogisticsRole {
 	}
 
 	@Override
-	public int requestItems(LogisticatorItem logisticator, FilterLogic filter, IGridTileRoute target, byte finalDir, ItemStack items, boolean ignoreMeta, boolean ignoreNBT) {
+	public int requestItems(LogisticatorItem logisticator, FilterLogic filter, LogisticsNetwork network, ILogisticator target, ItemStack items, boolean ignoreMeta, boolean ignoreNBT) {
 		// Requesters do not provide any items.
 		return 0;
 	}

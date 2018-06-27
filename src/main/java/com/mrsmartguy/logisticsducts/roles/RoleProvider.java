@@ -11,6 +11,8 @@ import java.util.Set;
 import com.mrsmartguy.logisticsducts.ducts.attachments.ILogisticator;
 import com.mrsmartguy.logisticsducts.ducts.attachments.LogisticatorItem;
 import com.mrsmartguy.logisticsducts.items.LDItemHelper;
+import com.mrsmartguy.logisticsducts.network.LogisticsDestination;
+import com.mrsmartguy.logisticsducts.network.LogisticsNetwork;
 
 import cofh.thermaldynamics.duct.attachments.filter.FilterLogic;
 import cofh.thermaldynamics.duct.item.DuctUnitItem;
@@ -38,12 +40,12 @@ public class RoleProvider extends LogisticsRole {
 	public boolean filterHasStackSize() { return false; }
 
 	@Override
-	public void performRole(LogisticatorItem logisticator, FilterLogic filter, Map<ILogisticator, Route> network) {
+	public void performRole(LogisticatorItem logisticator, FilterLogic filter, LogisticsNetwork network) {
 		// Providers have no active role.
 	}
 
 	@Override
-	public int requestItems(LogisticatorItem logisticator, FilterLogic filter, IGridTileRoute target, byte finalDir, ItemStack items, boolean ignoreMeta, boolean ignoreNBT) {
+	public int requestItems(LogisticatorItem logisticator, FilterLogic filter, LogisticsNetwork network, ILogisticator target, ItemStack items, boolean ignoreMeta, boolean ignoreNBT) {
 
 		// Do not provide items if the logisticator is not powered
 		if (logisticator.isPowered() == false) return 0;
@@ -79,14 +81,17 @@ public class RoleProvider extends LogisticsRole {
 				{
 					curStack.shrink(stackPulled.getCount());
 				}
-				Route route = logisticator.itemDuct.getRoute(target).copy();
-				route.pathDirections.add(finalDir);
+				LogisticsDestination dest = logisticator.getDestination(network);
+				Route route = logisticator.createRoute(network, target);
 				
-				TravelingItem traveling = new TravelingItem(stackPulled, logisticator.itemDuct, route, (byte) (logisticator.side ^ 1), logisticator.getSpeed());
-				logisticator.itemDuct.insertNewItem(traveling);
-				numSent += stackPulled.getCount();
-				if (numSent > 0)
-					break;		
+				if (route != null)
+				{
+					TravelingItem traveling = new TravelingItem(stackPulled, logisticator.itemDuct, route, (byte) (logisticator.side ^ 1), logisticator.getSpeed());
+					logisticator.itemDuct.insertNewItem(traveling);
+					numSent += stackPulled.getCount();
+					if (numSent > 0)
+						break;
+				}
 			}
 		}
 		

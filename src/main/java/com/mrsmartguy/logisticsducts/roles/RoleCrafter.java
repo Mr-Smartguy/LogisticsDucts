@@ -9,6 +9,8 @@ import com.mrsmartguy.logisticsducts.ducts.attachments.ILogisticator;
 import com.mrsmartguy.logisticsducts.ducts.attachments.LogisticatorItem;
 import com.mrsmartguy.logisticsducts.gui.container.ContainerRecipe;
 import com.mrsmartguy.logisticsducts.items.ItemLogisticsRecipe;
+import com.mrsmartguy.logisticsducts.network.LogisticsDestination;
+import com.mrsmartguy.logisticsducts.network.LogisticsNetwork;
 
 import cofh.thermaldynamics.duct.attachments.filter.FilterLogic;
 import cofh.thermaldynamics.multiblock.IGridTileRoute;
@@ -41,7 +43,7 @@ public class RoleCrafter extends LogisticsRole {
 	public boolean guiHasBlacklistButton() { return false; }
 
 	@Override
-	public void performRole(LogisticatorItem logisticator, FilterLogic filter, Map<ILogisticator, Route> network) {
+	public void performRole(LogisticatorItem logisticator, FilterLogic filter, LogisticsNetwork network) {
 		// TODO Crafter role
 		// Needs to process pending crafts and update the status of their pending items if needed
 		// as well as send crafted items along the ducts to their destinations
@@ -49,7 +51,7 @@ public class RoleCrafter extends LogisticsRole {
 	}
 
 	@Override
-	public int requestItems(LogisticatorItem logisticator, FilterLogic filter, IGridTileRoute target, byte finalDir, ItemStack items, boolean ignoreMeta, boolean ignoreNBT) {
+	public int requestItems(LogisticatorItem logisticator, FilterLogic filter, LogisticsNetwork network, ILogisticator target, ItemStack items, boolean ignoreMeta, boolean ignoreNBT) {
 		// Crafters do not provide items (crafters must explicitly be asked to craft)
 		return 0;
 	}

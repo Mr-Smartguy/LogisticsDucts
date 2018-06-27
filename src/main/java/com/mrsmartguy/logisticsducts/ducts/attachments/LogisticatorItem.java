@@ -16,6 +16,7 @@ import com.mrsmartguy.logisticsducts.gui.GuiLogisticator;
 import com.mrsmartguy.logisticsducts.gui.container.ContainerLogisticator;
 import com.mrsmartguy.logisticsducts.items.LDItemHelper;
 import com.mrsmartguy.logisticsducts.items.LDItems;
+import com.mrsmartguy.logisticsducts.network.LogisticsDestination;
 import com.mrsmartguy.logisticsducts.network.LogisticsNetwork;
 import com.mrsmartguy.logisticsducts.roles.RoleAcceptor;
 import com.mrsmartguy.logisticsducts.roles.RoleExtractor;
@@ -44,6 +45,8 @@ import cofh.thermaldynamics.duct.attachments.retriever.RetrieverItem;
 import cofh.thermaldynamics.duct.item.DuctUnitItem;
 import cofh.thermaldynamics.duct.item.StackMap;
 import cofh.thermaldynamics.duct.item.TravelingItem;
+import cofh.thermaldynamics.duct.tiles.DuctUnit;
+import cofh.thermaldynamics.duct.tiles.TileDuctItem;
 import cofh.thermaldynamics.duct.tiles.TileGrid;
 import cofh.thermaldynamics.gui.client.GuiDuctConnection;
 import cofh.thermaldynamics.multiblock.IGridTileRoute;
@@ -59,6 +62,7 @@ import net.minecraft.inventory.IContainerListener;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
+import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.BlockRenderLayer;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.ResourceLocation;
@@ -86,6 +90,8 @@ public class LogisticatorItem extends RetrieverItem implements ILogisticator {
 	private int activeRole = -1;
 	
 	private List<ItemStack> sortedTraveling = new ArrayList<ItemStack>();
+	
+	private LogisticsNetwork network = null;
 			
 	public LogisticatorItem(TileGrid tile, byte side) {
 		super(tile, side);
@@ -338,9 +344,15 @@ public class LogisticatorItem extends RetrieverItem implements ILogisticator {
 	public void tick(int pass)
 	{
 		super.tick(pass);
-		// Update caches of roles before roles are run
-		if (pass == 1)
+		// Clear network in tick pass 0, so that all logisticators have it cleared before tick pass 1
+		if (pass == 0)
 		{
+			invalidateNetwork(new LogisticsDestination(itemDuct.pos(), side));
+		}
+		// Update caches of roles before roles are run
+		else if (pass == 1)
+		{
+			updateNetwork();
 			updateTravelingCache();
 			if (roles != null)
 			{
@@ -356,6 +368,84 @@ public class LogisticatorItem extends RetrieverItem implements ILogisticator {
 		}
 	}
 	
+	/**
+	 * Finds any other logisticators on the network and creates a logistics network.
+	 */
+	private void updateNetwork()
+	{
+		// Network has already been constructed
+		if (network != null)
+			return;
+		// Look through network for other logisticators
+		if (verifyCache())
+		{
+			for (Route route : routesWithInsertSideList)
+			{
+				DuctUnitItem endPoint = (DuctUnitItem) route.endPoint;
+				byte i = route.getLastSide();
+				LogisticsDestination dest = new LogisticsDestination(endPoint.pos(), i);
+				
+				// Look for an attachment at the end of the network
+				Attachment attachment = endPoint.parent.getAttachment(i);
+	
+				// If there is an attachment, check if it is a logisticator
+				if (attachment != null)
+				{
+					if (attachment instanceof ILogisticator && attachment != this)
+					{
+						mergeNetworkWithOther((ILogisticator) attachment, dest);
+					}
+				}
+				// Otherwise, check if the route ends at a tile entity that is a logisticator
+				else
+				{
+					BlockPos destPos = endPoint.pos().offset(EnumFacing.VALUES[i]);
+					TileEntity destTE = baseTile.world().getTileEntity(destPos);
+					if (destTE != null && destTE instanceof ILogisticator)
+					{
+						mergeNetworkWithOther((ILogisticator) destTE, dest);
+					}
+				}
+			}
+		}
+	}
+	
+	/**
+	 * Merges the provided logisticator's network with this one, creating one if neither
+	 * is currently part of a network.
+	 * @param other
+	 */
+	private void mergeNetworkWithOther(ILogisticator other, LogisticsDestination otherDest)
+	{
+		// No network yet, join the other logisticator's or create one if it doesn't have one
+		if (network == null)
+		{
+			if (other.getNetwork(otherDest) != null)
+			{
+				network = other.getNetwork(otherDest);
+			}
+			else
+			{
+				network = new LogisticsNetwork();
+				network.addEndpoint(this);
+				network.addEndpoint(other);
+			}
+		}
+		// Network exists, merge with the other's or set the other's if it doesn't have one
+		else
+		{
+			if (other.getNetwork(otherDest) != null)
+			{
+				network.merge(other.getNetwork(otherDest));
+				other.setNetwork(otherDest, network);
+			}
+			else
+			{
+				other.setNetwork(otherDest, network);
+			}
+		}
+	}
+	
 	@Override
 	public void handleItemSending() {
 
@@ -363,28 +453,13 @@ public class LogisticatorItem extends RetrieverItem implements ILogisticator {
 		
 		IItemHandler simulatedInv = getCachedInv();
 		
-		HashMap<ILogisticator, Route> network = new HashMap<ILogisticator, Route>();
-		
 		// Make an unmodifiable copy of pending to prevent roles from modifying it unintentionally
 		List<TravelingItem> pendingUnmod = Collections.unmodifiableList(pending);
 		
 		if (!verifyCache()) {
 			return;
 		}
-		
-		// Scan routes for other logisticators
-		for (Route route : routesWithInsertSideList) {
-			DuctUnitItem endPoint = (DuctUnitItem) route.endPoint;
-
-			int i = route.getLastSide();
-
-			Attachment attachment = endPoint.parent.getAttachment(i);
-			
-			if (attachment != null && attachment instanceof LogisticatorItem && attachment != this) {
-				network.put((LogisticatorItem) attachment, route);
-			}
-		}
-		
+				
 		if (roles != null)
 		{
 			// Perform logistics roles
@@ -556,7 +631,7 @@ public class LogisticatorItem extends RetrieverItem implements ILogisticator {
 	 * @return The total number of items sent.
 	 */
 	@Override
-	public int requestItems(Map<ILogisticator, Route> network, IGridTileRoute target, byte finalDir, ItemStack items, boolean ignoreMeta, boolean ignoreNBT)
+	public int requestItems(LogisticsNetwork network, ILogisticator requester, ItemStack items, boolean ignoreMeta, boolean ignoreNBT)
 	{
 		// Copy items to prevent modifying the original stack, in case the caller didn't do this already
 		items = items.copy();
@@ -570,7 +645,7 @@ public class LogisticatorItem extends RetrieverItem implements ILogisticator {
 				{
 					FilterLogic filter = filters[roleIndex];
 					
-					int curSent = role.requestItems(this, filter, target, finalDir, items, ignoreMeta, ignoreNBT);
+					int curSent = role.requestItems(this, filter, network, requester, items, ignoreMeta, ignoreNBT);
 					sent += curSent;
 					if (items.getCount() > curSent)
 						items.shrink(curSent);
@@ -707,6 +782,66 @@ public class LogisticatorItem extends RetrieverItem implements ILogisticator {
 		public final static byte ROLE = 70;
 		public final static byte PLAYERTAB = 71;
 
+	}
+
+	@Override
+	public LogisticsNetwork getNetwork(LogisticsDestination destination) {
+		// Check if the provided destination corresponds to the destination of this attachment
+		if (destination.destPos.equals(itemDuct.pos()) && destination.destDir.ordinal() == side)
+			return network;
+		// They do not match, so this logisticator is not part of the given network
+		return null;
+	}
+
+	@Override
+	public LogisticsDestination getDestination(LogisticsNetwork network) {
+		// Network construction should ensure that all logisticators on the network share the same reference
+		// so we can use value equality to determine network equality
+		if (this.network == network)
+			return new LogisticsDestination(itemDuct.pos(), side);
+		return null;
+	}
+
+	@Override
+	public void setNetwork(LogisticsDestination destination, LogisticsNetwork network) {
+		// Check if the provided destination corresponds to the destination of this attachment
+		if (destination.destPos.equals(itemDuct.pos()) && destination.destDir.ordinal() == side)
+			this.network = network;
+	}
+
+	@Override
+	public Route createRoute(LogisticsNetwork network, ILogisticator endpoint) {
+		// Check if the provided network is the same as this duct's network
+		// Refer to getDestination to see why value equality is used
+		if (this.network == network)
+		{
+			// Find the TileEntity for the duct at the endpoint
+			LogisticsDestination dest = endpoint.getDestination(network);
+			if (itemDuct.parent.hasWorld())
+			{
+				TileEntity finalTile = itemDuct.world().getTileEntity(dest.destPos);
+				if (finalTile != null && finalTile instanceof TileDuctItem)
+				{
+					// Get the duct from the TileEntity at the endpoint
+					TileDuctItem finalTileDuct = (TileDuctItem) finalTile;
+					DuctUnit finalDuctUnit = finalTileDuct.getPrimaryDuctUnit();
+					if (finalDuctUnit != null && finalDuctUnit instanceof DuctUnitItem)
+					{
+						// Get the route to the final duct and add the final direction to it
+						DuctUnitItem finalDuct = (DuctUnitItem) finalDuctUnit;
+						Route route = itemDuct.getRoute(finalDuct);
+						route.pathDirections.add((byte)dest.destDir.ordinal());
+						return route.copy();
+					}
+				}
+			}
+		}
+		return null;
+	}
+
+	@Override
+	public void invalidateNetwork(LogisticsDestination destination) {
+		setNetwork(destination, null);
 	}
 
 }

@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.LinkedHashMap;
 
 import com.mrsmartguy.logisticsducts.gui.slot.SlotFilterStack;
 import com.mrsmartguy.logisticsducts.items.ItemLogisticsRecipe;
@@ -51,6 +52,7 @@ public class ContainerRecipe extends Container {
 		this.playerInv = playerInv;
 		this.inv = new InventoryBasic("Recipe", false, 10);
 		this.ingredientList = new ArrayList<ItemStack>();
+		this.ingredientMap = new LinkedHashMap<Integer, ItemStack>();
 		
 		addCraftingSlots();
 		

@@ -6,6 +6,8 @@ import java.util.Set;
 
 import com.mrsmartguy.logisticsducts.ducts.attachments.ILogisticator;
 import com.mrsmartguy.logisticsducts.ducts.attachments.LogisticatorItem;
+import com.mrsmartguy.logisticsducts.network.LogisticsDestination;
+import com.mrsmartguy.logisticsducts.network.LogisticsNetwork;
 
 import cofh.thermaldynamics.duct.attachments.filter.FilterLogic;
 import cofh.thermaldynamics.multiblock.IGridTileRoute;
@@ -40,9 +42,8 @@ public abstract class LogisticsRole {
 	 * Performs the function of this role (e.g. keep stock, request).
 	 * @param logisticator The logisticator that possesses this role.
 	 * @param filter The filter that corresponds to this role in the logisticator.
-	 * @param logisticators The logistics network, minus the logisticator that possesses this role.
 	 */
-	public abstract void performRole(LogisticatorItem logisticator, FilterLogic filter, Map<ILogisticator, Route> network);
+	public abstract void performRole(LogisticatorItem logisticator, FilterLogic filter, LogisticsNetwork network);
 
 	/**
 	 * Attempts to send the requested items along the given route.
@@ -53,7 +54,7 @@ public abstract class LogisticsRole {
 	 * @param items The requested items.
 	 * @return The total number of items sent.
 	 */
-	public abstract int requestItems(LogisticatorItem logisticator, FilterLogic filter, IGridTileRoute target, byte finalDir, ItemStack items, boolean ignoreMeta, boolean ignoreNBT);
+	public abstract int requestItems(LogisticatorItem logisticator, FilterLogic filter, LogisticsNetwork network, ILogisticator target, ItemStack items, boolean ignoreMeta, boolean ignoreNBT);
 	
 	/**
 	 * Determines how much of a given stack can be accepted by this role.

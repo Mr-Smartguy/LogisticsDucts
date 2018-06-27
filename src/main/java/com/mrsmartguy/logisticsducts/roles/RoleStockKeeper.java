@@ -11,6 +11,8 @@ import com.mrsmartguy.logisticsducts.ducts.attachments.FilterLogicConstants;
 import com.mrsmartguy.logisticsducts.ducts.attachments.ILogisticator;
 import com.mrsmartguy.logisticsducts.ducts.attachments.LogisticatorItem;
 import com.mrsmartguy.logisticsducts.items.LDItemHelper;
+import com.mrsmartguy.logisticsducts.network.LogisticsDestination;
+import com.mrsmartguy.logisticsducts.network.LogisticsNetwork;
 
 import cofh.thermaldynamics.duct.attachments.filter.FilterLogic;
 import cofh.thermaldynamics.duct.item.DuctUnitItem;
@@ -31,7 +33,7 @@ public class RoleStockKeeper extends LogisticsRole {
 	public boolean guiHasBlacklistButton() { return false; }
 
 	@Override
-	public void performRole(LogisticatorItem logisticator, FilterLogic filter, Map<ILogisticator, Route> network) {
+	public void performRole(LogisticatorItem logisticator, FilterLogic filter, LogisticsNetwork network) {
 		
 		// Get the cache attached to the logisticator
 		DuctUnitItem.Cache cache = logisticator.itemDuct.tileCache[logisticator.side];
@@ -89,10 +91,9 @@ public class RoleStockKeeper extends LogisticsRole {
 			if (actualStocked < targetStocked)
 			{
 				// Request items from any logisticators on the network
-				for (Entry<ILogisticator, Route> entry : network.entrySet())
+				for (ILogisticator target : network.getEndpoints())
 				{
 					// Get the logisticator's provided items
-					ILogisticator target = entry.getKey();
 					List<ItemStack> provided = target.getProvidedItems();
 					
 					if (provided == null)
@@ -110,7 +111,7 @@ public class RoleStockKeeper extends LogisticsRole {
 					
 					if (opt.isPresent())
 					{
-						target.requestItems(network, logisticator.itemDuct, logisticator.side, curRequestWithSize, ignoreMeta, ignoreNBT);
+						target.requestItems(network, logisticator, curRequestWithSize, ignoreMeta, ignoreNBT);
 						return;
 					}
 				}
@@ -119,7 +120,7 @@ public class RoleStockKeeper extends LogisticsRole {
 	}
 
 	@Override
-	public int requestItems(LogisticatorItem logisticator, FilterLogic filter, IGridTileRoute target, byte finalDir, ItemStack items, boolean ignoreMeta, boolean ignoreNBT) {
+	public int requestItems(LogisticatorItem logisticator, FilterLogic filter, LogisticsNetwork network, ILogisticator target, ItemStack items, boolean ignoreMeta, boolean ignoreNBT) {
 		// Requesters do not provide any items.
 		return 0;
 	}
