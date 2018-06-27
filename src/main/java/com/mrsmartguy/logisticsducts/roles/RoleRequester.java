@@ -13,9 +13,11 @@ import com.mrsmartguy.logisticsducts.network.LogisticsDestination;
 import com.mrsmartguy.logisticsducts.network.LogisticsNetwork;
 
 import cofh.thermaldynamics.duct.attachments.filter.FilterLogic;
+import cofh.thermaldynamics.duct.item.DuctUnitItem;
 import cofh.thermaldynamics.multiblock.IGridTileRoute;
 import cofh.thermaldynamics.multiblock.Route;
 import net.minecraft.item.ItemStack;
+import net.minecraftforge.items.IItemHandler;
 
 public class RoleRequester extends LogisticsRole {
 
@@ -38,24 +40,66 @@ public class RoleRequester extends LogisticsRole {
 		boolean ignoreMeta = filter.getFlag(FilterLogicConstants.flagIgnoreMetadata);
 		boolean ignoreNBT = filter.getFlag(FilterLogicConstants.flagIgnoreNBT);
 		
-		// Request items from any logisticators on the network
-		for (ILogisticator target : network.getEndpoints())
-		{			
-			List<ItemStack> provided = target.getProvidedItems();
+		// Make sure we don't request items if the logisticator is already stuffed
+		if (logisticator.isStuffed()) return;
+		
+		// Get the cache attached to the logisticator
+		DuctUnitItem.Cache cache = logisticator.itemDuct.tileCache[logisticator.side];
+		if (cache == null) return;
+		
+		// Get the handler for the side of the inventory attached to the duct
+		IItemHandler handler = cache.getItemHandler(logisticator.side ^ 1);
+		if (handler == null) return;
+		
+		// Iterate over items in the filter and see if they can be requested
+		for (ItemStack curRequest : filter.getFilterStacks())
+		{
+			// Make sure we don't try to request an empty item
+			if (curRequest == null || curRequest.isEmpty())
+				continue;
 			
-			for (ItemStack curRequest : filter.getFilterStacks())
+			// Calculate the amount of items to request
+			final ItemStack curRequestWithSize = curRequest.copy();
+			curRequestWithSize.setCount(filter.getLevel(FilterLogic.levelStackSize));
+			
+			int slotIndex = -1;
+			
+			// Check if the stack fits in any slots
+			for (int i = 0; i < handler.getSlots(); i++)
 			{
-				final ItemStack curRequestWithSize = curRequest.copy();
-				curRequestWithSize.setCount(filter.getLevel(FilterLogic.levelStackSize));
-				Optional<ItemStack> opt = provided
-						.stream()
-						.filter(stack -> LDItemHelper.itemComparator.compareWithFlags(stack, curRequestWithSize, ignoreMeta, ignoreNBT) == 0)
-						.findFirst();
+				// Simulate inserting into the current slot
+				ItemStack remainingSimulated = handler.insertItem(i, curRequestWithSize, true);
 				
-				if (opt.isPresent())
+				// Check if any items were inserted in the simulation, if they were use this slot
+				if (remainingSimulated.getCount() < curRequestWithSize.getCount())
 				{
-					target.requestItems(network, logisticator, curRequestWithSize, ignoreMeta, ignoreNBT);
-					return;
+					slotIndex = i;
+					curRequestWithSize.shrink(remainingSimulated.getCount());
+				}
+			}
+			
+			// A slot was found, request the items
+			if (slotIndex != -1)
+			{
+				// Request items from any logisticators on the network
+				for (ILogisticator target : network.getEndpoints())
+				{			
+					// Ensure the logisticator doesn't request from itself
+					if (target == logisticator) continue;
+					
+					List<ItemStack> provided = target.getProvidedItems();
+					
+					// Check if the provider has any items
+					Optional<ItemStack> opt = provided
+							.stream()
+							.filter(stack -> LDItemHelper.itemComparator.compareWithFlags(stack, curRequestWithSize, ignoreMeta, ignoreNBT) == 0)
+							.findFirst();
+					
+					if (opt.isPresent())
+					{
+						target.requestItems(network, logisticator, curRequestWithSize, ignoreMeta, ignoreNBT);
+						return;
+					}
 				}
 			}
 		}

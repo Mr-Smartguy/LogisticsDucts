@@ -65,6 +65,9 @@ public class RoleExtractor extends LogisticsRole {
 			{
 				for (ILogisticator endpoint : network.getEndpoints())
 				{
+					// Ensure the logisticator doesn't send to itself
+					if (endpoint == logisticator) continue;
+					
 					int numAccepted = endpoint.acceptsItems(stack);
 					if (numAccepted > 0)
 					{
@@ -83,7 +86,7 @@ public class RoleExtractor extends LogisticsRole {
 						if (route != null)
 						{
 							TravelingItem traveling = new TravelingItem(extracted, logisticator.itemDuct, route, (byte) (logisticator.side ^ 1), logisticator.getSpeed());
-							
+							traveling.mustGoToDest = true;
 							logisticator.itemDuct.insertNewItem(traveling);
 							logisticator.addPendingItem(traveling);
 							

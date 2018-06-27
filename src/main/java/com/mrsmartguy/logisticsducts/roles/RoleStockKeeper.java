@@ -35,6 +35,9 @@ public class RoleStockKeeper extends LogisticsRole {
 	@Override
 	public void performRole(LogisticatorItem logisticator, FilterLogic filter, LogisticsNetwork network) {
 		
+		// Make sure we don't request items if the logisticator is already stuffed
+		if (logisticator.isStuffed()) return;
+		
 		// Get the cache attached to the logisticator
 		DuctUnitItem.Cache cache = logisticator.itemDuct.tileCache[logisticator.side];
 		if (cache == null) return;
@@ -93,6 +96,9 @@ public class RoleStockKeeper extends LogisticsRole {
 				// Request items from any logisticators on the network
 				for (ILogisticator target : network.getEndpoints())
 				{
+					// Ensure the logisticator doesn't request from itself
+					if (target == logisticator) continue;
+					
 					// Get the logisticator's provided items
 					List<ItemStack> provided = target.getProvidedItems();
 					

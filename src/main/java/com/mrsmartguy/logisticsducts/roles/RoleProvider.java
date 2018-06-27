@@ -87,6 +87,7 @@ public class RoleProvider extends LogisticsRole {
 				if (route != null)
 				{
 					TravelingItem traveling = new TravelingItem(stackPulled, logisticator.itemDuct, route, (byte) (logisticator.side ^ 1), logisticator.getSpeed());
+					traveling.mustGoToDest = true;
 					logisticator.itemDuct.insertNewItem(traveling);
 					numSent += stackPulled.getCount();
 					if (numSent > 0)

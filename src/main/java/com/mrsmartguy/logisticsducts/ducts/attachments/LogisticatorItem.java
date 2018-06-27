@@ -460,7 +460,7 @@ public class LogisticatorItem extends RetrieverItem implements ILogisticator {
 			return;
 		}
 				
-		if (roles != null)
+		if (roles != null && isPowered)
 		{
 			// Perform logistics roles
 			for (int roleIndex = 0; roleIndex < roles.length; roleIndex++)
@@ -739,30 +739,16 @@ public class LogisticatorItem extends RetrieverItem implements ILogisticator {
 
 	@Override
 	public void handleStuffedItems() {
-
-		FilterLogic curFilter = filter;
 		
-		
+		// Accept all items (they would have only been sent if done so by the logistics system)
 		for (Iterator<ItemStack> iterator = stuffedItems.iterator(); iterator.hasNext(); ) {
 			ItemStack stuffedItem = iterator.next();
-			int accepted = acceptsItems(stuffedItem);
-			if (accepted > 0)
-			{
-				stuffedItem.setCount(itemDuct.insertIntoInventory(stuffedItem, side));
-				if (stuffedItem.getCount() <= 0) {
-					iterator.remove();
-					break;
-				}
+			
+			stuffedItem.setCount(itemDuct.insertIntoInventory(stuffedItem, side));
+			if (stuffedItem.getCount() <= 0) {
+				iterator.remove();
 			}
 		}
-
-		// Create temporary filter to ensure superclasses don't accept any stuffed items
-		filter = createFilterLogic();
-		// Set filter to whitelist
-		filter.setFlag(0, false);
-		super.handleStuffedItems();
-		// Restore old filter
-		filter = curFilter;
 	}
 	
 	
