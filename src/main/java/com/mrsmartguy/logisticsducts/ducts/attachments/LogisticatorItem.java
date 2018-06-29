@@ -375,7 +375,6 @@ public class LogisticatorItem extends RetrieverItem implements ILogisticator {
 	 */
 	private void updateNetwork()
 	{
-		// TODO fix network generation code so it doesn't rely on routesWithInsertSideList, which seems unreliable
 		// Network has already been constructed
 		if (network != null)
 			return;
