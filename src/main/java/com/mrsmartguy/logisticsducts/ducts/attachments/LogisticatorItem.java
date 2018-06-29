@@ -14,6 +14,7 @@ import java.util.stream.StreamSupport;
 import com.mrsmartguy.logisticsducts.LogisticsDucts;
 import com.mrsmartguy.logisticsducts.gui.GuiLogisticator;
 import com.mrsmartguy.logisticsducts.gui.container.ContainerLogisticator;
+import com.mrsmartguy.logisticsducts.gui.container.ContainerRecipe;
 import com.mrsmartguy.logisticsducts.items.LDItemHelper;
 import com.mrsmartguy.logisticsducts.items.LDItems;
 import com.mrsmartguy.logisticsducts.network.LogisticsDestination;
@@ -43,6 +44,7 @@ import cofh.thermaldynamics.duct.attachments.filter.FilterLogic;
 import cofh.thermaldynamics.duct.attachments.filter.IFilterItems;
 import cofh.thermaldynamics.duct.attachments.retriever.RetrieverItem;
 import cofh.thermaldynamics.duct.item.DuctUnitItem;
+import cofh.thermaldynamics.duct.item.GridItem;
 import cofh.thermaldynamics.duct.item.StackMap;
 import cofh.thermaldynamics.duct.item.TravelingItem;
 import cofh.thermaldynamics.duct.tiles.DuctUnit;
@@ -373,12 +375,14 @@ public class LogisticatorItem extends RetrieverItem implements ILogisticator {
 	 */
 	private void updateNetwork()
 	{
+		// TODO fix network generation code so it doesn't rely on routesWithInsertSideList, which seems unreliable
 		// Network has already been constructed
 		if (network != null)
 			return;
 		// Look through network for other logisticators
 		if (verifyCache())
 		{
+			GridItem g = itemDuct.getGrid();
 			for (Route route : routesWithInsertSideList)
 			{
 				DuctUnitItem endPoint = (DuctUnitItem) route.endPoint;
@@ -449,6 +453,7 @@ public class LogisticatorItem extends RetrieverItem implements ILogisticator {
 			else
 			{
 				other.setNetwork(otherDest, network);
+				network.addEndpoint(other);
 			}
 		}
 	}
@@ -664,6 +669,37 @@ public class LogisticatorItem extends RetrieverItem implements ILogisticator {
 		return sent;
 	}
 	
+	/**
+	 * Sends as many of the requested item to the destination along the given route via the logistics network.
+	 * @return The total number of items sent.
+	 */
+	@Override
+	public int craftItems(LogisticsNetwork network, ILogisticator requester, ItemStack items, boolean ignoreMeta, boolean ignoreNBT, boolean completeCraftsOnly)
+	{
+		// Copy items to prevent modifying the original stack, in case the caller didn't do this already
+		items = items.copy();
+		int sent = 0;
+		if (roles != null)
+		{
+			for (int roleIndex = 0; roleIndex < roles.length; roleIndex++)
+			{
+				LogisticsRole role = roles[roleIndex];
+				if (role != null)
+				{
+					FilterLogic filter = filters[roleIndex];
+					
+					int curSent = role.craftItems(this, filter, network, requester, items, ignoreMeta, ignoreNBT, completeCraftsOnly);
+					sent += curSent;
+					if (items.getCount() > curSent)
+						items.shrink(curSent);
+					else
+						break;
+				}
+			}
+		}
+		return sent;
+	}
+	
 	@Override
 	public List<ItemStack> getProvidedItems()
 	{
@@ -699,6 +735,49 @@ public class LogisticatorItem extends RetrieverItem implements ILogisticator {
 			}
 		}
 		return stacks;
+	}
+	
+	public List<ItemStack> getCraftedItems()
+	{
+		ArrayList<ItemStack> crafted = new ArrayList<ItemStack>();
+		
+		if (roles != null)
+		{
+			for (int roleIndex = 0; roleIndex < roles.length; roleIndex++)
+			{
+				LogisticsRole role = roles[roleIndex];
+				FilterLogic filter = filters[roleIndex];
+				if (role != null)
+				{
+					List<ItemStack> craftedItems = role.getCraftedItems(this, filter);
+					if (craftedItems != null)
+						crafted.addAll(craftedItems);
+				}
+			}
+		}
+		
+		return crafted;
+	}
+	
+	@Override
+	public List<ContainerRecipe> getRecipes()
+	{
+		ArrayList<ContainerRecipe> recipes = new ArrayList<ContainerRecipe>();
+		
+		if (roles != null)
+		{
+			for (LogisticsRole role : roles)
+			{
+				if (role != null)
+				{
+					List<ContainerRecipe> curRecipes = role.getRecipes();
+					if (curRecipes != null)
+						recipes.addAll(curRecipes);
+				}
+			}
+		}
+		
+		return recipes;
 	}
 	
 	/**

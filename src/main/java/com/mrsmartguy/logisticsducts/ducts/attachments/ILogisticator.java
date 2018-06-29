@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import com.mrsmartguy.logisticsducts.gui.container.ContainerRecipe;
 import com.mrsmartguy.logisticsducts.network.LogisticsDestination;
 import com.mrsmartguy.logisticsducts.network.LogisticsNetwork;
 import com.mrsmartguy.logisticsducts.roles.LogisticsRole;
@@ -34,10 +35,28 @@ public interface ILogisticator {
 	public int requestItems(LogisticsNetwork network, ILogisticator requester, ItemStack items, boolean ignoreMeta, boolean ignoreNBT);
 	
 	/**
+	 * Attempts to craft the requested items.
+	 * @param network The logistics network.
+	 * @param requester The logisticator requesting the items.
+	 * @param items The item stack being requested.
+	 * @param ignoreMeta Whether items can be provided that do not match the metadata of the given stack.
+	 * @param ignoreNBT Whether items can be provided that do not match the tags of the given stack.
+	 * @param completeCraftsOnly Whether insufficient crafting requests should not be completed.
+	 * @return The total number of items sent.
+	 */
+	public int craftItems(LogisticsNetwork network, ILogisticator requester, ItemStack items, boolean ignoreMeta, boolean ignoreNBT, boolean completeCraftsOnly);
+	
+	/**
 	 * Gets a list of all item stacks that can be provided to the logistics network by this logisticator.
 	 * @return The list of all item stacks provided by this logisticator to the network.
 	 */
 	public List<ItemStack> getProvidedItems();
+	
+	/**
+	 * Returns a list of all items that can be crafted by this logisticator.
+	 * @return The list of all item stacks crafted by this logisticator.
+	 */
+	public abstract List<ItemStack> getCraftedItems();
 	
 	/**
 	 * Determines if a given stack can be accepted by this logisticator from the network.
@@ -88,6 +107,8 @@ public interface ILogisticator {
 	 * @param destination This logisticator's destination for the network to invalidate
 	 */
 	public void invalidateNetwork(LogisticsDestination destination);
+
+	public List<ContainerRecipe> getRecipes();
 	
 	
 }

@@ -9,7 +9,7 @@ import java.util.List;
  */
 public class CraftingTree {
 	
-	private CraftingOperation operation;
+	public final CraftingOperation operation;
 	private List<CraftingTree> children;
 	
 	public CraftingTree(CraftingOperation operation, List<CraftingTree> children)
@@ -49,11 +49,6 @@ public class CraftingTree {
 			
 			return allOps;
 		}
-	}
-	
-	public CraftingOperation getOperation()
-	{
-		return operation;
 	}
 	
 	public List<CraftingTree> getChildren()

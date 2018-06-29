@@ -101,6 +101,26 @@ public class RoleRequester extends LogisticsRole {
 						return;
 					}
 				}
+				// Request items be crafted from any logisticators that can craft on the network
+				for (ILogisticator target : network.getEndpoints())
+				{			
+					// Ensure the logisticator doesn't request from itself
+					if (target == logisticator) continue;
+					
+					List<ItemStack> provided = target.getCraftedItems();
+					
+					// Check if the provider has any items
+					Optional<ItemStack> opt = provided
+							.stream()
+							.filter(stack -> LDItemHelper.itemComparator.compareWithFlags(stack, curRequestWithSize, ignoreMeta, ignoreNBT) == 0)
+							.findFirst();
+					
+					if (opt.isPresent())
+					{
+						target.craftItems(network, logisticator, curRequestWithSize, ignoreMeta, ignoreNBT, false);
+						return;
+					}
+				}
 			}
 		}
 	}
@@ -108,6 +128,12 @@ public class RoleRequester extends LogisticsRole {
 	@Override
 	public int requestItems(LogisticatorItem logisticator, FilterLogic filter, LogisticsNetwork network, ILogisticator target, ItemStack items, boolean ignoreMeta, boolean ignoreNBT) {
 		// Requesters do not provide any items.
+		return 0;
+	}
+	
+	@Override
+	public int craftItems(LogisticatorItem logisticator, FilterLogic filter, LogisticsNetwork network, ILogisticator target, ItemStack items, boolean ignoreMeta, boolean ignoreNBT, boolean completeCraftsOnly) {
+		// Requesters do not craft items.
 		return 0;
 	}
 

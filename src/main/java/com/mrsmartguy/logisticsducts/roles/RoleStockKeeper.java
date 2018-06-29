@@ -130,6 +130,12 @@ public class RoleStockKeeper extends LogisticsRole {
 		// Requesters do not provide any items.
 		return 0;
 	}
+	
+	@Override
+	public int craftItems(LogisticatorItem logisticator, FilterLogic filter, LogisticsNetwork network, ILogisticator target, ItemStack items, boolean ignoreMeta, boolean ignoreNBT, boolean completeCraftsOnly) {
+		// Requesters do not craft items.
+		return 0;
+	}
 
 	@Override
 	public int acceptsItems(LogisticatorItem logisticator, FilterLogic filter, ItemStack items) {

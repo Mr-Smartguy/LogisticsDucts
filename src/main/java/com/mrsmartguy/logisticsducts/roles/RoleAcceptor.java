@@ -36,6 +36,12 @@ public class RoleAcceptor extends LogisticsRole {
 		// Acceptors do not provide items.
 		return 0;
 	}
+	
+	@Override
+	public int craftItems(LogisticatorItem logisticator, FilterLogic filter, LogisticsNetwork network, ILogisticator target, ItemStack items, boolean ignoreMeta, boolean ignoreNBT, boolean completeCraftsOnly) {
+		// Accepters do not craft items.
+		return 0;
+	}
 
 	@Override
 	public int acceptsItems(LogisticatorItem logisticator, FilterLogic filter, ItemStack items) {

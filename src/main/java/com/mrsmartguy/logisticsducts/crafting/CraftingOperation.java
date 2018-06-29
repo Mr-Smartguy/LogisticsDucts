@@ -7,6 +7,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import com.mrsmartguy.logisticsducts.ducts.attachments.ILogisticator;
+
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.math.BlockPos;
 
@@ -18,19 +20,17 @@ public class CraftingOperation {
 	private ItemStack product;
 	private Map<Integer, ItemStack> posIngredientMap;
 	private List<ItemStack> ingredientList;
-	private int recipeQuantity;
-	private BlockPos ductPos;
-	private byte attachmentDir;
+	public final int recipeQuantity;
+	public final ILogisticator logisticator; 
 	
 	/**
 	 * Constructs a crafting operation.
 	 * @param product The produced item stack for this operation's recipe
 	 * @param ingredients A mapping of crafting position to item
 	 * @param recipeQuantity The number of times the recipe is to be crafted
-	 * @param ductPos The position of the duct that the crafter that will perform this operation is attached to
-	 * @param attachmentDir The side of the duct that the crafter that will perform this operation is attached to
+	 * @param logisticator The logisticator that will perform this operation (crafting)
 	 */
-	public CraftingOperation(ItemStack product, Map<Integer, ItemStack> ingredients, int recipeQuantity, BlockPos ductPos, byte attachmentSide)
+	public CraftingOperation(ItemStack product, Map<Integer, ItemStack> ingredients, int recipeQuantity, ILogisticator logisticator)
 	{
 		this.product = product.copy();
 		this.posIngredientMap = new LinkedHashMap<Integer, ItemStack>(ingredients);
@@ -39,10 +39,26 @@ public class CraftingOperation {
 				.filter(x -> x != null)
 				.collect(Collectors.toCollection(ArrayList::new));
 		this.recipeQuantity = recipeQuantity;
+		this.logisticator = logisticator;
 	}
 	
 	/**
 	 * Constructs a crafting operation with no recipe (meaning the items exist in the logistics system already).
+	 * @param product The "produced" item stack for this operation.
+	 * @param logisticator The logisticator that will perform this operation (providing)
+	 */
+	public CraftingOperation(ItemStack product, ILogisticator logisticator)
+	{
+		this.product = product.copy();
+		this.posIngredientMap = null;
+		this.ingredientList = null;
+		this.recipeQuantity = 1;
+		this.logisticator = logisticator;
+	}
+	
+	/**
+	 * Constructs an operation to serve as the root node for request operations. The logisticator is null
+	 * and the product stack is the sum of all provided stacks from the children operations.
 	 * @param product The "produced" item stack for this operation.
 	 */
 	public CraftingOperation(ItemStack product)
@@ -50,6 +66,8 @@ public class CraftingOperation {
 		this.product = product.copy();
 		this.posIngredientMap = null;
 		this.ingredientList = null;
+		this.recipeQuantity = 0;
+		this.logisticator = null;
 	}
 	
 	public ItemStack getProduct()
@@ -90,5 +108,13 @@ public class CraftingOperation {
 	public boolean productInSystem()
 	{
 		return posIngredientMap == null;
+	}
+
+	/**
+	 * Returns whether this operation is a request operation (as opposed to a crafting operation)
+	 * @return True if this operation is a request operation, false otherwise
+	 */
+	public boolean isRequest() {
+		return ingredientList == null && logisticator != null;
 	}
 }

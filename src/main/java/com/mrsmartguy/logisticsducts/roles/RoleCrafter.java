@@ -2,9 +2,11 @@ package com.mrsmartguy.logisticsducts.roles;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.mrsmartguy.logisticsducts.crafting.CraftingRequest;
 import com.mrsmartguy.logisticsducts.ducts.attachments.ILogisticator;
 import com.mrsmartguy.logisticsducts.ducts.attachments.LogisticatorItem;
 import com.mrsmartguy.logisticsducts.gui.container.ContainerRecipe;
@@ -55,6 +57,29 @@ public class RoleCrafter extends LogisticsRole {
 		// Crafters do not provide items (crafters must explicitly be asked to craft)
 		return 0;
 	}
+	
+	@Override
+	public int craftItems(LogisticatorItem logisticator, FilterLogic filter, LogisticsNetwork network, ILogisticator target, ItemStack items, boolean ignoreMeta, boolean ignoreNBT, boolean completeCraftsOnly) {
+		
+		Map<ItemStack, ILogisticator> providedItems = new LinkedHashMap<ItemStack, ILogisticator>();
+		Map<ContainerRecipe, ILogisticator> recipeMap = new LinkedHashMap<ContainerRecipe, ILogisticator>();
+		
+		for (ILogisticator curLogisticator : network.getEndpoints())
+		{
+			// Do not request from self
+			if (curLogisticator != logisticator)
+			{
+				for (ItemStack stack : curLogisticator.getProvidedItems())
+					providedItems.put(stack, curLogisticator);
+			}
+			for (ContainerRecipe curRecipe : curLogisticator.getRecipes())
+				recipeMap.put(curRecipe, curLogisticator);
+		}
+		
+		CraftingRequest request = CraftingRequest.createRequest(items, recipeMap, providedItems);
+		// TODO
+		return 0;
+	}
 
 	@Override
 	public int acceptsItems(LogisticatorItem logisticator, FilterLogic filter, ItemStack items) {
@@ -75,14 +100,25 @@ public class RoleCrafter extends LogisticsRole {
 	}
 	
 	@Override
+	public List<ContainerRecipe> getRecipes()
+	{
+		return recipes;
+	}
+	
+	@Override
 	public void updateCaches(LogisticatorItem logisticator, FilterLogic filter)
 	{
+		craftedItems.clear();
+		recipes.clear();
+		
 		// Check item stacks and look for recipes
 		for (ItemStack stack : filter.getFilterStacks())
 		{
 			if (stack.getItem() instanceof ItemLogisticsRecipe)
 			{
 				ContainerRecipe recipe = new ContainerRecipe(stack, null);
+				craftedItems.add(recipe.getProduct());
+				recipes.add(recipe);
 			}
 		}
 	}

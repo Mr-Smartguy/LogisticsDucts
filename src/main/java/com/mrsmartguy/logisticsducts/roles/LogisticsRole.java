@@ -1,11 +1,13 @@
 package com.mrsmartguy.logisticsducts.roles;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import com.mrsmartguy.logisticsducts.ducts.attachments.ILogisticator;
 import com.mrsmartguy.logisticsducts.ducts.attachments.LogisticatorItem;
+import com.mrsmartguy.logisticsducts.gui.container.ContainerRecipe;
 import com.mrsmartguy.logisticsducts.network.LogisticsDestination;
 import com.mrsmartguy.logisticsducts.network.LogisticsNetwork;
 
@@ -49,12 +51,43 @@ public abstract class LogisticsRole {
 	 * Attempts to send the requested items along the given route.
 	 * @param logisticator The logisticator that possesses this role.
 	 * @param filter The filter that corresponds to this role in the logisticator.
-	 * @param target The target tile to send the item to.
-	 * @param finalDir The final direction of the route.
+	 * @param network The logistics network to send the requested items down.
+	 * @param target The target logisticator to send the item to.
 	 * @param items The requested items.
+	 * @param ignoreMeta Whether the requester is ignoring metadata.
+	 * @param ignoreNBT Whether the requester is ignoring tags.
 	 * @return The total number of items sent.
 	 */
-	public abstract int requestItems(LogisticatorItem logisticator, FilterLogic filter, LogisticsNetwork network, ILogisticator target, ItemStack items, boolean ignoreMeta, boolean ignoreNBT);
+	public abstract int requestItems(
+			LogisticatorItem logisticator,
+			FilterLogic filter,
+			LogisticsNetwork network,
+			ILogisticator target,
+			ItemStack items,
+			boolean ignoreMeta,
+			boolean ignoreNBT);
+	
+	/**
+	 * 
+	 * @param logisticator The logisticator that possesses this role.
+	 * @param filter The filter that corresponds to this role in the logisticator.
+	 * @param network The logistics network to send the requested items down.
+	 * @param target The target logisticator to send the item to.
+	 * @param items The requested items.
+	 * @param ignoreMeta Whether the requester is ignoring metadata.
+	 * @param ignoreNBT Whether the requester is ignoring tags.
+	 * @param completeCraftsOnly Whether the requester accepts an incomplete crafting request (less items crafted than the given item stack's count)
+	 * @return The total number of items crafted
+	 */
+	public abstract int craftItems(
+			LogisticatorItem logisticator,
+			FilterLogic filter,
+			LogisticsNetwork network,
+			ILogisticator target,
+			ItemStack items,
+			boolean ignoreMeta,
+			boolean ignoreNBT,
+			boolean completeCraftsOnly);
 	
 	/**
 	 * Determines how much of a given stack can be accepted by this role.
@@ -100,5 +133,7 @@ public abstract class LogisticsRole {
 	 * @param tag The tag to read to
 	 */
 	public void readFromTag(NBTTagCompound tag) {}
+
+	public List<ContainerRecipe> getRecipes() { return null; }
 
 }
