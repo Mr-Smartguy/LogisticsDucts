@@ -20,8 +20,9 @@ public class CraftingOperation {
 	private ItemStack product;
 	private Map<Integer, ItemStack> posIngredientMap;
 	private List<ItemStack> ingredientList;
+	private boolean isTransfer = false;
 	public final int recipeQuantity;
-	public final ILogisticator logisticator; 
+	public final ILogisticator logisticator;
 	
 	/**
 	 * Constructs a crafting operation.
@@ -49,11 +50,24 @@ public class CraftingOperation {
 	 */
 	public CraftingOperation(ItemStack product, ILogisticator logisticator)
 	{
+		this(product, logisticator, false);
+	}
+	
+	/**
+	 * Constructs a crafting operation that is either a request from a provider or a transfer
+	 * A transfer is a request for non-provided items, i.e. results from a craft
+	 * @param product The "produced" item stack for this operation.
+	 * @param logisticator The logisticator that will perform this operation (providing)
+	 * @param transfer Whether this operation is a transfer (true) or request (false)
+	 */
+	public CraftingOperation(ItemStack product, ILogisticator logisticator, boolean transfer)
+	{
 		this.product = product.copy();
 		this.posIngredientMap = null;
 		this.ingredientList = null;
 		this.recipeQuantity = 1;
 		this.logisticator = logisticator;
+		this.isTransfer = transfer;
 	}
 	
 	/**
@@ -66,7 +80,7 @@ public class CraftingOperation {
 		this.product = product.copy();
 		this.posIngredientMap = null;
 		this.ingredientList = null;
-		this.recipeQuantity = 0;
+		this.recipeQuantity = 1;
 		this.logisticator = null;
 	}
 	
@@ -109,12 +123,10 @@ public class CraftingOperation {
 	{
 		return posIngredientMap == null;
 	}
-
-	/**
-	 * Returns whether this operation is a request operation (as opposed to a crafting operation)
-	 * @return True if this operation is a request operation, false otherwise
-	 */
-	public boolean isRequest() {
-		return ingredientList == null && logisticator != null;
+	
+	public void execute(ILogisticator destination, int toTransfer)
+	{
+		logisticator.initiateCraft();
+		logisticator.transferTo(destination, product);
 	}
 }

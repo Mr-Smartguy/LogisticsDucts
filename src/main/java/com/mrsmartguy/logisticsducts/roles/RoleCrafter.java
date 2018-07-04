@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.mrsmartguy.logisticsducts.crafting.CraftingRequest;
+import com.mrsmartguy.logisticsducts.crafting.CraftingTree;
 import com.mrsmartguy.logisticsducts.ducts.attachments.ILogisticator;
 import com.mrsmartguy.logisticsducts.ducts.attachments.LogisticatorItem;
 import com.mrsmartguy.logisticsducts.gui.container.ContainerRecipe;
@@ -70,13 +71,39 @@ public class RoleCrafter extends LogisticsRole {
 			if (curLogisticator != logisticator)
 			{
 				for (ItemStack stack : curLogisticator.getProvidedItems())
-					providedItems.put(stack, curLogisticator);
+					providedItems.put(stack.copy(), curLogisticator);
 			}
 			for (ContainerRecipe curRecipe : curLogisticator.getRecipes())
 				recipeMap.put(curRecipe, curLogisticator);
 		}
+		// Construct the crafting tree
+		CraftingRequest craft = CraftingRequest.createRequest(items, recipeMap, providedItems);
 		
-		CraftingRequest request = CraftingRequest.createRequest(items, recipeMap, providedItems);
+		// If no tree was returned, the craft is not possible
+		if (craft == null)
+			return 0;
+		
+		// Get a list of all provider request operations in the tree
+		List<CraftingTree> requestTrees = craft.getRequestSubTrees();
+		
+		// Move all items from the given providers to their destinations
+		for (CraftingTree curRequest : requestTrees)
+		{
+			// Get the logisticator that provides the current item request
+			ILogisticator source = curRequest.operation.logisticator;
+			
+			// Look upwards through the tree until a crafting operation is found,
+			// this is where the items should be sent to
+			CraftingTree parent = curRequest.getParent();
+			while (!parent.operation.isCraft())
+				parent = parent.getParent();
+			
+			// Get the logisticator to send the items to
+			ILogisticator dest = parent.operation.logisticator;
+			
+			for (int i = 0; i < curRequest.operation.recipeQuantity; i++)
+				source.requestItems(network, dest, curRequest.operation.getProduct(), false, false);
+		}
 		// TODO
 		return 0;
 	}

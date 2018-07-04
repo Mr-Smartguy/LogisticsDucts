@@ -11,11 +11,21 @@ public class CraftingTree {
 	
 	public final CraftingOperation operation;
 	private List<CraftingTree> children;
+	private CraftingTree parent;
 	
 	public CraftingTree(CraftingOperation operation, List<CraftingTree> children)
 	{
 		this.operation = operation;
 		this.children = children;
+		this.parent = null;
+		// Set the parent of all children
+		if (children != null)
+		{
+			for (CraftingTree child : children)
+			{
+				child.parent = this;
+			}
+		}
 	}
 	
 	/**
@@ -59,6 +69,11 @@ public class CraftingTree {
 	public boolean hasChildren()
 	{
 		return children != null && !children.isEmpty();
+	}
+	
+	public CraftingTree getParent()
+	{
+		return parent;
 	}
 	
 }
