@@ -77,7 +77,7 @@ public class RoleCrafter extends LogisticsRole {
 				recipeMap.put(curRecipe, curLogisticator);
 		}
 		// Construct the crafting tree
-		CraftingRequest craft = CraftingRequest.createRequest(items, recipeMap, providedItems);
+		CraftingRequest craft = CraftingRequest.createRequest(target, items, recipeMap, providedItems);
 		
 		// If no tree was returned, the craft is not possible
 		if (craft == null)
@@ -92,14 +92,8 @@ public class RoleCrafter extends LogisticsRole {
 			// Get the logisticator that provides the current item request
 			ILogisticator source = curRequest.operation.logisticator;
 			
-			// Look upwards through the tree until a crafting operation is found,
-			// this is where the items should be sent to
-			CraftingTree parent = curRequest.getParent();
-			while (!parent.operation.isCraft())
-				parent = parent.getParent();
-			
 			// Get the logisticator to send the items to
-			ILogisticator dest = parent.operation.logisticator;
+			ILogisticator dest = curRequest.operation.dest;
 			
 			for (int i = 0; i < curRequest.operation.recipeQuantity; i++)
 				source.requestItems(network, dest, curRequest.operation.getProduct(), false, false);

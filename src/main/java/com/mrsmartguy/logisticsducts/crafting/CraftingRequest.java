@@ -34,12 +34,13 @@ public class CraftingRequest {
 	
 	/**
 	 * Creates a request for the given product
+	 * @param target The logisticator to send the product to
 	 * @param requestedProduct The target product to make, with quantity
 	 * @param recipes The list of recipes that the crafter has access to
 	 * @param providedItems A mapping of provided items to the logisticator that provides them (the contents will be modified!)
 	 * @return The generated request, or null if the given product cannot be crafted with the given recipes
 	 */
-	public static CraftingRequest createRequest(ItemStack requestedProduct, Map<ContainerRecipe, ILogisticator> recipes, Map<ItemStack, ILogisticator> providedItems)
+	public static CraftingRequest createRequest(ILogisticator target, ItemStack requestedProduct, Map<ContainerRecipe, ILogisticator> recipes, Map<ItemStack, ILogisticator> providedItems)
 	{		
 		
 		List<ItemStack> insufficient = new ArrayList<ItemStack>();
@@ -47,7 +48,7 @@ public class CraftingRequest {
 		Map<ItemStack, ILogisticator> spareCrafts = new LinkedHashMap<ItemStack, ILogisticator>();
 		providedSorted.sort(LDItemHelper.itemComparator);
 		
-		CraftingTree newTree = constructTree(requestedProduct, recipes, providedItems, providedSorted, spareCrafts, insufficient);
+		CraftingTree newTree = constructTree(target, requestedProduct, recipes, providedItems, providedSorted, spareCrafts, insufficient);
 		if (newTree != null)
 			return new CraftingRequest(newTree);
 		else
@@ -75,6 +76,7 @@ public class CraftingRequest {
 	 * @return
 	 */
 	private static CraftingTree constructTree(
+			ILogisticator target,
 			ItemStack curProduct,
 			Map<ContainerRecipe, ILogisticator> recipes,
 			Map<ItemStack, ILogisticator> providedItemsMap,
@@ -82,46 +84,77 @@ public class CraftingRequest {
 			Map<ItemStack, ILogisticator> spareCrafts,
 			List<ItemStack> insufficient)
 	{
-		///////////////////////////////////
-		// Attempting to provide product //
-		///////////////////////////////////
+		/////////////////////////////////////////
+		// Attempting to find existing product //
+		/////////////////////////////////////////
 		
 		// Get items that match the product in the provided items
 		List<ItemStack> productProvided = LDItemHelper.getAllThatMatch(curProduct, providedItemsSorted, false, false);
 		
-		// Keep track of the number of product provided
-		int numProductProvided = 0;
+		// Keep track of the number of product transferred and requested
+		int numProductFound = 0;
 		
-		// Create a list to keep track of all request operations
-		ArrayList<CraftingTree> requestChildren = new ArrayList<CraftingTree>();
+		// Create a list to keep track of all transfer and request operations
+		ArrayList<CraftingTree> productChildren = new ArrayList<CraftingTree>();
 		
-		// Iterate over all matches and create operations to request them
+		// Check if there is any left over product from previous crafting operations
+		
 		for (Entry<ItemStack, ILogisticator> entry : spareCrafts.entrySet())
 		{
+			// Make sure we don't transfer excess
+			if (numProductFound >= curProduct.getCount()) break;
+
 			ItemStack curSpare = entry.getKey();
 			ILogisticator source = entry.getValue();
 			
 			if (LDItemHelper.itemComparator.compareWithFlags(curSpare, curProduct, false, false) == 0)
 			{
+				// Determine the amount to transfer
+				// This should not be greater than the remaining amount of product needed
+				// And should also not be greater than the stack size of the current match
+				int curTransferAmount = Math.min(curProduct.getCount() - numProductFound, curSpare.getCount());
+				// Create a copy of the transferred stack and set its count to the amount to request
+				ItemStack curTransfer = curSpare.copy();
+				// Create the operation and tree corresponding to this transfer
+				CraftingOperation curTransferOp = new CraftingOperation(curTransfer, source, target, true);
+				CraftingTree curTransferTree = new CraftingTree(curTransferOp, null);
+				// Update the amount of product found
+				productChildren.add(curTransferTree);
+				// Update the amount of product found
+				numProductFound += curTransferAmount;
 				
-				CraftingOperation transferOp = new CraftingOperation(curProduct, source, true);
+				// The stack was consumed entirely, remove it from the spare items
+				if (curSpare.getCount() == curTransferAmount)
+				{
+					spareCrafts.remove(curSpare);
+				}
+				// Otherwise reduce the spare stack's size by the amount to transfer
+				else
+				{
+					curSpare.shrink(curTransferAmount);
+				}
 			}
 		}
+
+		// Check if there is any product that exists in the system already		
+
 		for (ItemStack curProductProvided : productProvided)
 		{
+			// Make sure we don't request excess
+			if (numProductFound >= curProduct.getCount()) break;
 			// Determine the amount to request
-			// This should not be greater than the amount of product left to provide
+			// This should not be greater than the remaining amount of product needed
 			// And should also not be greater than the stack size of the current match
-			int curRequestAmount = Math.min(curProduct.getCount() - numProductProvided, curProductProvided.getCount());
+			int curRequestAmount = Math.min(curProduct.getCount() - numProductFound, curProductProvided.getCount());
 			// Create a copy of the provided stack and set its count to the amount to request
 			ItemStack curRequest = curProductProvided.copy();
 			curRequest.setCount(curRequestAmount);
 			// Create the operation and tree corresponding to this request
-			CraftingOperation curRequestOp = new CraftingOperation(curRequest, providedItemsMap.get(curProductProvided));
+			CraftingOperation curRequestOp = new CraftingOperation(curRequest, providedItemsMap.get(curProductProvided), target);
 			CraftingTree curRequestTree = new CraftingTree(curRequestOp, null);
-			requestChildren.add(curRequestTree);
-			// Update the amount of product provided
-			numProductProvided += curRequestAmount;
+			productChildren.add(curRequestTree);
+			// Update the amount of product found
+			numProductFound += curRequestAmount;
 			
 			// The stack was consumed entirely, remove it from the provided items
 			if (curProductProvided.getCount() == curRequestAmount)
@@ -136,15 +169,15 @@ public class CraftingRequest {
 			}
 			
 		}
-		// If any are provided, adjust their stack sizes and return a tree with as many as can be provided or the desired amount if possible
-		if (numProductProvided > 0)
+		// If any are found, adjust their stack sizes and return a tree with as many as can be provided or the desired amount if possible
+		if (numProductFound > 0)
 		{
 			// Create a copy of the product with the amount that can be provided
 			ItemStack providedStack = curProduct.copy();
-			providedStack.setCount(Math.min(numProductProvided, curProduct.getCount()));
+			providedStack.setCount(Math.min(numProductFound, curProduct.getCount()));
 			// Create a request crafting tree, which has a null logisticator in the root operation
 			// and the requests as children operations
-			CraftingTree retVal = new CraftingTree(new CraftingOperation(providedStack), requestChildren);
+			CraftingTree retVal = new CraftingTree(new CraftingOperation(providedStack), productChildren);
 			return retVal;
 		}
 		
@@ -166,7 +199,7 @@ public class CraftingRequest {
 		{
 			List<CraftingTree> children = new ArrayList<CraftingTree>();
 			ContainerRecipe curRecipe = recipeOpt.get().getKey();
-			ILogisticator logisticator = recipeOpt.get().getValue();
+			ILogisticator recipeHolder = recipeOpt.get().getValue();
 			List<ItemStack> ingredients = curRecipe.getIngredients();
 			Map<Integer, ItemStack> ingredientMap = curRecipe.getIngredientMap();
 			int recipeQuantity = roundUpDivide(curProduct.getCount(), curRecipe.getProduct().getCount());
@@ -182,7 +215,7 @@ public class CraftingRequest {
 				ingredient.setCount(ingredient.getCount() * recipeQuantity);
 				
 				// Attempt to create a crafting tree for the current ingredient
-				CraftingTree ingredientTree = constructTree(ingredient, recipes, providedItemsMap, providedItemsSorted, spareCrafts, insufficient);
+				CraftingTree ingredientTree = constructTree(recipeHolder, ingredient, recipes, providedItemsMap, providedItemsSorted, spareCrafts, insufficient);
 				if (ingredientTree != null)
 				{
 					children.add(ingredientTree);
@@ -194,7 +227,7 @@ public class CraftingRequest {
 						ItemStack ingredientRemaining = ingredient.copy();
 						ingredientRemaining.shrink(ingredientTree.operation.getTotalProductCount());
 						// Attempt to make another crafting tree to craft the remaining ingredient needed
-						CraftingTree ingredientTreeCraft = constructTree(ingredient, recipes, providedItemsMap, providedItemsSorted, spareCrafts, insufficient);
+						CraftingTree ingredientTreeCraft = constructTree(recipeHolder, ingredient, recipes, providedItemsMap, providedItemsSorted, spareCrafts, insufficient);
 						if (ingredientTreeCraft != null &&
 								ingredientTreeCraft.operation.getTotalProductCount() >= ingredientRemaining.getCount())
 						{
@@ -205,16 +238,6 @@ public class CraftingRequest {
 							// No valid ingredient crafting tree can be made for the remaining quantity, exit the loop
 							allIngredientsFound = false;
 							break;
-						}
-					}
-					else
-					{
-						int spareIngredient = ingredientTree.operation.getTotalProductCount() - curProduct.getCount();
-						if (spareIngredient > 0)
-						{
-							ItemStack spareIngredientStack = curProduct.copy();
-							spareIngredientStack.setCount(spareIngredient);
-							spareCrafts.put(spareIngredientStack, logisticator);
 						}
 					}
 				}
@@ -229,7 +252,14 @@ public class CraftingRequest {
 			// All ingredients are accounted for, create and return the resultant crafting tree
 			if (allIngredientsFound)
 			{
-				return new CraftingTree(new CraftingOperation(curProduct, ingredientMap, recipeQuantity, logisticator), children);
+				int spareProduct = recipeQuantity * curRecipe.getProduct().getCount() - curProduct.getCount();
+				if (spareProduct > 0)
+				{
+					ItemStack spareProductStack = curProduct.copy();
+					spareProductStack.setCount(spareProduct);
+					spareCrafts.put(spareProductStack, recipeHolder);
+				}
+				return new CraftingTree(new CraftingOperation(curProduct, ingredientMap, recipeQuantity, recipeHolder, target), children);
 			}
 		}
 		
@@ -286,7 +316,7 @@ public class CraftingRequest {
 		{
 			operations.add(curNode);
 		}
-		else
+		else if (curNode.hasChildren())
 		{
 			for (CraftingTree curChild : curNode.getChildren())
 			{

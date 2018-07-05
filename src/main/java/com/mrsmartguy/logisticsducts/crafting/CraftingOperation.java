@@ -23,6 +23,7 @@ public class CraftingOperation {
 	private boolean isTransfer = false;
 	public final int recipeQuantity;
 	public final ILogisticator logisticator;
+	public final ILogisticator dest;
 	
 	/**
 	 * Constructs a crafting operation.
@@ -30,8 +31,9 @@ public class CraftingOperation {
 	 * @param ingredients A mapping of crafting position to item
 	 * @param recipeQuantity The number of times the recipe is to be crafted
 	 * @param logisticator The logisticator that will perform this operation (crafting)
+	 * @param dest The logisticator to send the product to
 	 */
-	public CraftingOperation(ItemStack product, Map<Integer, ItemStack> ingredients, int recipeQuantity, ILogisticator logisticator)
+	public CraftingOperation(ItemStack product, Map<Integer, ItemStack> ingredients, int recipeQuantity, ILogisticator logisticator, ILogisticator dest)
 	{
 		this.product = product.copy();
 		this.posIngredientMap = new LinkedHashMap<Integer, ItemStack>(ingredients);
@@ -41,16 +43,18 @@ public class CraftingOperation {
 				.collect(Collectors.toCollection(ArrayList::new));
 		this.recipeQuantity = recipeQuantity;
 		this.logisticator = logisticator;
+		this.dest = dest;
 	}
 	
 	/**
 	 * Constructs a crafting operation with no recipe (meaning the items exist in the logistics system already).
 	 * @param product The "produced" item stack for this operation.
 	 * @param logisticator The logisticator that will perform this operation (providing)
+	 * @param dest The logisticator to send the product to
 	 */
-	public CraftingOperation(ItemStack product, ILogisticator logisticator)
+	public CraftingOperation(ItemStack product, ILogisticator logisticator, ILogisticator dest)
 	{
-		this(product, logisticator, false);
+		this(product, logisticator, dest, false);
 	}
 	
 	/**
@@ -58,9 +62,10 @@ public class CraftingOperation {
 	 * A transfer is a request for non-provided items, i.e. results from a craft
 	 * @param product The "produced" item stack for this operation.
 	 * @param logisticator The logisticator that will perform this operation (providing)
+	 * @param dest The logisticator to send the product to
 	 * @param transfer Whether this operation is a transfer (true) or request (false)
 	 */
-	public CraftingOperation(ItemStack product, ILogisticator logisticator, boolean transfer)
+	public CraftingOperation(ItemStack product, ILogisticator logisticator, ILogisticator dest, boolean transfer)
 	{
 		this.product = product.copy();
 		this.posIngredientMap = null;
@@ -68,6 +73,7 @@ public class CraftingOperation {
 		this.recipeQuantity = 1;
 		this.logisticator = logisticator;
 		this.isTransfer = transfer;
+		this.dest = dest;
 	}
 	
 	/**
@@ -82,6 +88,7 @@ public class CraftingOperation {
 		this.ingredientList = null;
 		this.recipeQuantity = 1;
 		this.logisticator = null;
+		this.dest = null;
 	}
 	
 	public ItemStack getProduct()
@@ -124,9 +131,19 @@ public class CraftingOperation {
 		return posIngredientMap == null;
 	}
 	
-	public void execute(ILogisticator destination, int toTransfer)
+	public void execute()
 	{
-		logisticator.initiateCraft();
-		logisticator.transferTo(destination, product);
+		//logisticator.initiateCraft();
+		//logisticator.transferTo(dest, product);
+	}
+	
+	public boolean isRequest()
+	{
+		return !isTransfer && ingredientList == null && logisticator != null;
+	}
+	
+	public boolean isCraft()
+	{
+		return ingredientList != null;
 	}
 }
